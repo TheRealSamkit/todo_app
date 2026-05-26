@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Todo App</title>
+		<link rel="stylesheet" href="style.css" />
+		<link
+			rel="stylesheet"
+			href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+			integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+			crossorigin="anonymous"
+			referrerpolicy="no-referrer"
+		/>
+	</head>
+	<body>
+		<header class="flex">
+			<h2>Kanban Board Based ToDo App</h2>
+			<button class="btn add-todo-btn">Add Card</button>
+		</header>
+		<main>
+			<section class="">
+				<div class="title">Todo</div>
+				<div class="card-container todo-container">
+					<div class="todo-card flex">
+						<div class="todo-header flex">
+							<span class="todo-title auto-scroll">
+								titlennooenoirnoienro
+							</span>
+							<div class="action-wrapper">
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									viewBox="0 0 512 512"
+									class="icon btn-edit"
+								>
+									<path
+										d="M441 58.9L453.1 71c9.4 9.4 9.4 24.6 0 33.9L424 134.1 377.9 88 407 58.9c9.4-9.4 24.6-9.4 33.9 0zM209.8 256.2L344 121.9 390.1 168 255.8 302.2c-2.9 2.9-6.5 5-10.4 6.1l-58.5 16.7 16.7-58.5c1.1-3.9 3.2-7.5 6.1-10.4zM373.1 25L175.8 222.2c-8.7 8.7-15 19.4-18.3 31.1l-28.6 100c-2.4 8.4-.1 17.4 6.1 23.6s15.2 8.5 23.6 6.1l100-28.6c11.8-3.4 22.5-9.7 31.1-18.3L487 138.9c28.1-28.1 28.1-73.7 0-101.8L474.9 25C446.8-3.1 401.2-3.1 373.1 25zM88 64C39.4 64 0 103.4 0 152L0 424c0 48.6 39.4 88 88 88l272 0c48.6 0 88-39.4 88-88l0-112c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 112c0 22.1-17.9 40-40 40L88 464c-22.1 0-40-17.9-40-40l0-272c0-22.1 17.9-40 40-40l112 0c13.3 0 24-10.7 24-24s-10.7-24-24-24L88 64z"
+									/>
+								</svg>
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									viewBox="0 0 448 512"
+									class="icon btn-delete"
+								>
+									<path
+										d="M136.7 5.9C141.1-7.2 153.3-16 167.1-16l113.9 0c13.8 0 26 8.8 30.4 21.9L320 32 416 32c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 96C14.3 96 0 81.7 0 64S14.3 32 32 32l96 0 8.7-26.1zM32 144l384 0 0 304c0 35.3-28.7 64-64 64L96 512c-35.3 0-64-28.7-64-64l0-304zm88 64c-13.3 0-24 10.7-24 24l0 192c0 13.3 10.7 24 24 24s24-10.7 24-24l0-192c0-13.3-10.7-24-24-24zm104 0c-13.3 0-24 10.7-24 24l0 192c0 13.3 10.7 24 24 24s24-10.7 24-24l0-192c0-13.3-10.7-24-24-24zm104 0c-13.3 0-24 10.7-24 24l0 192c0 13.3 10.7 24 24 24s24-10.7 24-24l0-192c0-13.3-10.7-24-24-24z"
+									/>
+								</svg>
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									height="30"
+									width="30"
+									viewBox="0 0 640 640"
+									class="drag-btn icon"
+								>
+									<path
+										d="M288 104C288 81.9 270.1 64 248 64L200 64C177.9 64 160 81.9 160 104L160 152C160 174.1 177.9 192 200 192L248 192C270.1 192 288 174.1 288 152L288 104zM288 296C288 273.9 270.1 256 248 256L200 256C177.9 256 160 273.9 160 296L160 344C160 366.1 177.9 384 200 384L248 384C270.1 384 288 366.1 288 344L288 296zM160 488L160 536C160 558.1 177.9 576 200 576L248 576C270.1 576 288 558.1 288 536L288 488C288 465.9 270.1 448 248 448L200 448C177.9 448 160 465.9 160 488zM480 104C480 81.9 462.1 64 440 64L392 64C369.9 64 352 81.9 352 104L352 152C352 174.1 369.9 192 392 192L440 192C462.1 192 480 174.1 480 152L480 104zM352 296L352 344C352 366.1 369.9 384 392 384L440 384C462.1 384 480 366.1 480 344L480 296C480 273.9 462.1 256 440 256L392 256C369.9 256 352 273.9 352 296zM480 488C480 465.9 462.1 448 440 448L392 448C369.9 448 352 465.9 352 488L352 536C352 558.1 369.9 576 392 576L440 576C462.1 576 480 558.1 480 536L480 488z"
+									/>
+								</svg>
+							</div>
+						</div>
+						<div class="todo-description">
+							Lorem ipsum dolor sit amet, consectetur adipisicing
+							elit. Excepturi perspiciatis eligendi quia, earum
+							dolore, non libero veritatis dolores sequi minus
+							est. Omnis et aliquid iste ullam cupiditate
+							obcaecati autem voluptate.
+						</div>
+						<div class="todo-due-date">26/05/2026</div>
+					</div>
+				</div>
+			</section>
+			<section class="">
+				<div class="title">In Progress</div>
+
+				<div class="card-container in-progress-container"></div>
+			</section>
+			<section>
+				<div class="title">Completed</div>
+
+				<div class="card-container completed-container"></div>
+			</section>
+		</main>
+		<div class="modal hide">
+			<div class="modal-body">
+				<h4 class="modal-title flex">
+					<span class="form-action">Add New Todo</span>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						viewBox="0 0 384 512"
+						class="icon btn-cancel-todo"
+					>
+						<path
+							d="M55.1 73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L147.2 256 9.9 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192.5 301.3 329.9 438.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.8 256 375.1 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192.5 210.7 55.1 73.4z"
+						/>
+					</svg>
+				</h4>
+				<div class="modal-form">
+					<div class="input-group flex">
+						<label for="#todoTitle">Title:</label>
+						<input type="text" name="title" id="#todoTitle" />
+					</div>
+					<div class="input-group flex">
+						<label for="#todoDescription">Description:</label>
+						<textarea
+							type="text"
+							name="Description"
+							id="#todoDescription"
+						></textarea>
+					</div>
+
+					<div class="input-group flex">
+						<label for="#todoDueDate">Due Date:</label>
+						<input type="date" name="DueDate" id="#todoDueDate" />
+					</div>
+				</div>
+				<div class="modal-actions flex">
+					<button
+						class="btn btn-cancel-todo"
+						style="background-color: var(--secondary)"
+					>
+						Cancel
+					</button>
+					<button class="btn btn-submit-todo">Submit</button>
+				</div>
+			</div>
+		</div>
+		<script src="script.js"></script>
+	</body>
+</html>
