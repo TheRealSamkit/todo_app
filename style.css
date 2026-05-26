@@ -141,10 +141,6 @@ section {
 	}
 }
 
-.drag-btn {
-	cursor: grab;
-}
-
 .icon {
 	border-radius: var(--border-radius);
 	padding: 4px;
@@ -158,16 +154,8 @@ section {
 	background-color: #ffffff24;
 }
 
-.todo-footer {
-	margin-top: var(--size);
-	justify-content: space-evenly;
-	width: 100%;
-	gap: var(--size);
-}
-
-.todo-footer .btn {
-	flex-grow: 1;
-	margin: 0;
+.drag-btn {
+	cursor: grab;
 }
 
 .btn-edit {
@@ -227,11 +215,13 @@ section {
 	padding: calc(var(--size) * 2);
 
 	display: flex;
+	justify-content: space-evenly;
 	flex-direction: column;
 }
 
 .modal-title {
 	justify-content: space-between !important;
+	margin-bottom: var(--size);
 }
 
 .modal-actions {
@@ -264,4 +254,31 @@ textarea:focus-visible {
 }
 .input-group label {
 	margin-top: var(--size);
+}
+
+.false {
+	outline: 2px solid rgb(241, 27, 27);
+	animation: shake 0.5s ease-out;
+}
+@keyframes shake {
+	0% {
+		transform: translateX(0);
+	}
+	25% {
+		transform: translateX(5px);
+	}
+	50% {
+		transform: translateX(-5px);
+	}
+	75% {
+		transform: translateX(5px);
+	}
+	100% {
+		transform: translateX(0);
+	}
+}
+
+.todo-description {
+	width: 100%;
+	overflow-wrap: break-word;
 }
