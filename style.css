@@ -10,7 +10,7 @@
 	/* theme colors */
 	--primary: #0070ff;
 	--secondary: #6b7280;
-
+	--danger: rgb(241, 27, 27);
 	--white: #fff;
 	--black: #000;
 
@@ -93,12 +93,23 @@ section {
 
 .title {
 	text-align: center;
+	position: relative;
 	padding: var(--size);
 	background-color: var(--gray-800);
 	border-top-left-radius: var(--border-radius);
 	border-top-right-radius: var(--border-radius);
 	font-size: calc(var(--size) * 3);
 	border-bottom: 1px solid var(--border-color);
+}
+
+#todoCount {
+	position: absolute;
+	top: 2px;
+	right: 2px;
+	background-color: var(--gray-900);
+	padding: 4px 10px;
+	border-radius: 50%;
+	border: 1px solid var(--border-color);
 }
 
 .action-wrapper {
@@ -163,7 +174,7 @@ section {
 }
 
 .btn-delete {
-	fill: rgb(241, 27, 27) !important;
+	fill: var(--danger) !important;
 }
 
 .btn {
@@ -208,7 +219,7 @@ section {
 
 .modal-body {
 	width: 40%;
-	height: 40%;
+	height: auto;
 	background-color: var(--gray-800);
 	border-radius: var(--border-radius);
 	border: 1px solid var(--border-color);
@@ -230,7 +241,8 @@ section {
 }
 
 input,
-textarea {
+textarea,
+select {
 	all: unset;
 
 	width: 70%;
@@ -243,7 +255,8 @@ textarea {
 }
 
 input:focus-visible,
-textarea:focus-visible {
+textarea:focus-visible,
+select:focus-visible {
 	outline: 2px solid #737373;
 }
 
@@ -281,4 +294,8 @@ textarea:focus-visible {
 .todo-description {
 	width: 100%;
 	overflow-wrap: break-word;
+}
+
+.date-overdue {
+	color: var(--danger);
 }

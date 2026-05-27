@@ -1,11 +1,6 @@
+let todos = [];
 document.addEventListener("DOMContentLoaded", () => {
-	const todoItemsContainer = document.querySelector(".todo-container");
-	const inProgressItemsContainer = document.querySelector(
-		".in-progress-container",
-	);
-	const completedItemsContainer = document.querySelector(
-		".completed-container",
-	);
+	let todoDragging = null;
 	const addNewTodoBtn = document.querySelector(".add-todo-btn");
 	const todoModal = document.querySelector(".modal");
 	const closeModalBtn = document.querySelectorAll(".btn-cancel-todo");
@@ -14,23 +9,64 @@ document.addEventListener("DOMContentLoaded", () => {
 	const todoTitleInp = document.querySelector("#todoTitle");
 	const todoDescInp = document.querySelector("#todoDescription");
 	const todoDueDateInp = document.querySelector("#todoDueDate");
+	const todoStateInp = document.querySelector("#todoState");
+	const todoCols = document.querySelectorAll(".todoCol");
 
 	// functions
-	const toggleModalVisibility = (bool) => {
+	const toggleModalVisibility = (bool, mode = "open", id = null) => {
+		let modalTitle = document.querySelector(".form-action");
 		if (bool) {
 			todoModal.classList.remove("hide");
+			todoTitleInp.value = "";
+			todoDescInp.value = "";
+			todoDueDateInp.value = "";
+			todoStateInp.value = "todo";
+
+			todoStateInp.parentNode.classList.add("hide");
 			todoModal.classList.add("flex");
+			modalTitle.textContent = "Add New Todo";
 		} else {
 			todoModal.classList.add("hide");
 			todoModal.classList.remove("flex");
 		}
+
+		if (mode === "edit" && id !== null) {
+			todoStateInp.parentNode.classList.remove("hide");
+			const idx = todos.findIndex((todo) => todo.todoId === id);
+			let todoData = todos[idx];
+
+			modalTitle.textContent = "Edit " + todoData.todoTitle;
+
+			todoTitleInp.value = todoData.todoTitle;
+			todoDescInp.value = todoData.todoDesc;
+			todoDueDateInp.value = todoData.todoDueDate;
+			todoStateInp.value = todoData.state;
+
+			submitTodoBtn.addEventListener(
+				"click",
+				() => {
+					handleTodoSubmit(id, (mode = "edit"), idx);
+				},
+				{ once: true },
+			);
+
+			return;
+		}
+		submitTodoBtn.addEventListener(
+			"click",
+			() => {
+				handleTodoSubmit((mode = "add"));
+			},
+			{ once: true },
+		);
 	};
 
-	const handleTodoSubmit = () => {
+	const handleTodoSubmit = (id = null, mode = "add", idx = null) => {
 		let todoTitle = todoTitleInp.value;
 		let todoDesc = todoDescInp.value;
 		let todoDueDate = todoDueDateInp.value;
-
+		let todoState = todoStateInp.value;
+		let todoObj = {};
 		if (todoTitle === null || todoTitle === "") {
 			todoTitleInp.classList.add("false");
 			return;
@@ -39,14 +75,81 @@ document.addEventListener("DOMContentLoaded", () => {
 			todoDueDateInp.classList.add("false");
 			return;
 		}
+		todoTitleInp.classList.remove("false");
+		todoDueDateInp.classList.remove("false");
+		if (mode === "add") {
+			todoObj = {
+				todoId: `${todoTitle.replace(/\s/g, "")}${Date.now()}`,
+				todoTitle,
+				todoDesc,
+				todoDueDate,
+				state: "todo",
+			};
+			createTodoElement(todoObj);
+			todos.unshift(todoObj);
+		}
 
-		let todoId = `${todoTitle}${Date.now()}`;
-		console.log("Something", todoId);
+		if (mode === "edit" && id !== null && idx !== null) {
+			todoObj = {
+				todoId: id,
+				todoTitle,
+				todoDesc,
+				todoDueDate,
+				state: todoState,
+			};
+			handleTodoDelete(id);
+			todos.unshift(todoObj);
+			createTodoElement(todoObj);
+		}
 
-		todoItemsContainer.innerHTML += `<div class="todo-card flex" id="${todoId}">
-						<div class="todo-header flex">
-							<span class="todo-title ${todoTitle.length >= 15 ? "auto-scroll" : ""}">
-								${todoTitle}
+		updateTodosLocalStorage();
+		toggleModalVisibility(false);
+	};
+
+	//Global Functions
+	const handleTodoDelete = (id) => {
+		const idx = todos.findIndex((todo) => todo.todoId === id);
+
+		if (idx !== -1) {
+			todos.splice(idx, 1);
+		}
+		console.log("removing", idx, id);
+
+		document.getElementById(id).remove();
+		updateTodosLocalStorage();
+	};
+
+	const updateTodosLocalStorage = () => {
+		let data = JSON.stringify(todos);
+		localStorage.setItem("todos", data);
+	};
+
+	const readTodosLocalStorage = () => {
+		if (localStorage.getItem("todos") === null) return;
+		todos = JSON.parse(localStorage.getItem("todos"));
+		console.log(todos, "here");
+	};
+	const createTodoElement = (todo) => {
+		const todoItemsContainer = document.querySelector(".todo-container");
+		const inProgressItemsContainer = document.querySelector(
+			".in-progress-container",
+		);
+		const completedItemsContainer = document.querySelector(
+			".completed-container",
+		);
+		let parent =
+			todo.state === "todo"
+				? todoItemsContainer
+				: todo.state === "inProgress"
+					? inProgressItemsContainer
+					: completedItemsContainer;
+		let todoDiv = Object.assign(document.createElement("div"), {
+			className: "todo-card flex",
+			id: todo.todoId,
+			draggable: false,
+			innerHTML: `<div class="todo-header flex">
+							<span class="todo-title ${todo.todoTitle.length >= 30 ? "auto-scroll" : ""}">
+								${todo.todoTitle}
 							</span>
 							<div class="action-wrapper">
 								<svg
@@ -62,7 +165,6 @@ document.addEventListener("DOMContentLoaded", () => {
 									xmlns="http://www.w3.org/2000/svg"
 									viewBox="0 0 448 512"
 									class="icon btn-delete"
-									onClick="handleTodoDelete('${todoId}')"
 								>
 									<path
 										d="M136.7 5.9C141.1-7.2 153.3-16 167.1-16l113.9 0c13.8 0 26 8.8 30.4 21.9L320 32 416 32c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 96C14.3 96 0 81.7 0 64S14.3 32 32 32l96 0 8.7-26.1zM32 144l384 0 0 304c0 35.3-28.7 64-64 64L96 512c-35.3 0-64-28.7-64-64l0-304zm88 64c-13.3 0-24 10.7-24 24l0 192c0 13.3 10.7 24 24 24s24-10.7 24-24l0-192c0-13.3-10.7-24-24-24zm104 0c-13.3 0-24 10.7-24 24l0 192c0 13.3 10.7 24 24 24s24-10.7 24-24l0-192c0-13.3-10.7-24-24-24zm104 0c-13.3 0-24 10.7-24 24l0 192c0 13.3 10.7 24 24 24s24-10.7 24-24l0-192c0-13.3-10.7-24-24-24z"
@@ -74,6 +176,7 @@ document.addEventListener("DOMContentLoaded", () => {
 									width="30"
 									viewBox="0 0 640 640"
 									class="drag-btn icon"
+									data-todo-id=${todo.todoId}
 								>
 									<path
 										d="M288 104C288 81.9 270.1 64 248 64L200 64C177.9 64 160 81.9 160 104L160 152C160 174.1 177.9 192 200 192L248 192C270.1 192 288 174.1 288 152L288 104zM288 296C288 273.9 270.1 256 248 256L200 256C177.9 256 160 273.9 160 296L160 344C160 366.1 177.9 384 200 384L248 384C270.1 384 288 366.1 288 344L288 296zM160 488L160 536C160 558.1 177.9 576 200 576L248 576C270.1 576 288 558.1 288 536L288 488C288 465.9 270.1 448 248 448L200 448C177.9 448 160 465.9 160 488zM480 104C480 81.9 462.1 64 440 64L392 64C369.9 64 352 81.9 352 104L352 152C352 174.1 369.9 192 392 192L440 192C462.1 192 480 174.1 480 152L480 104zM352 296L352 344C352 366.1 369.9 384 392 384L440 384C462.1 384 480 366.1 480 344L480 296C480 273.9 462.1 256 440 256L392 256C369.9 256 352 273.9 352 296zM480 488C480 465.9 462.1 448 440 448L392 448C369.9 448 352 465.9 352 488L352 536C352 558.1 369.9 576 392 576L440 576C462.1 576 480 558.1 480 536L480 488z"
@@ -81,15 +184,59 @@ document.addEventListener("DOMContentLoaded", () => {
 								</svg>
 							</div>
 						</div>
-						<p class="todo-description">
-							${todoDesc}
-						</p>
-						<div class="todo-due-date">${todoDueDate}</div>
-					</div>`;
-		todoTitleInp.value = "";
-		todoDescInp.value = "";
-		todoDueDateInp.value = "";
-		toggleModalVisibility(false);
+				<p class="todo-description">
+						${todo.todoDesc}
+				</p>
+			<div class="todo-due-date ${new Date().toISOString().split("T")[0] === todo.todoDueDate ? "date-overdue" : ""}">Due: ${todo.todoDueDate}</div>`,
+		});
+		{
+			todoDiv
+				.querySelector(".btn-delete")
+				.addEventListener("click", () => {
+					handleTodoDelete(todo.todoId);
+				});
+			todoDiv.querySelector(".btn-edit").addEventListener("click", () => {
+				toggleModalVisibility(true, (mode = "edit"), todo.todoId);
+			});
+			todoDiv
+				.querySelector(".drag-btn")
+				.addEventListener("mousedown", () => {
+					todoDiv.draggable = true;
+				});
+			todoDiv
+				.querySelector(".drag-btn")
+				.addEventListener("mouseout", () => {
+					todoDiv.draggable = false;
+				});
+			todoDiv.addEventListener("dragstart", (event) => {
+				handleTodoDragStart(event);
+			});
+		}
+		parent.appendChild(todoDiv);
+		updateTodoCount();
+	};
+	const handleTodoDragStart = (event) => {
+		todoDragging = document.getElementById(event.target.id);
+		event.dataTransfer.effectAllowed = "move";
+		event.dataTransfer.setData("task", "");
+	};
+
+	const handleTodoDragOver = (ev, column) => {
+		ev.preventDefault();
+
+		todoDragging.remove();
+		column.children[1].appendChild(todoDragging);
+		const idx = todos.findIndex((todo) => todo.todoId === todoDragging.id);
+		todos[idx].state = column.dataset.state;
+		updateTodoCount();
+		updateTodosLocalStorage();
+	};
+
+	const updateTodoCount = () => {
+		todoCols.forEach((col) => {
+			let count = col.querySelectorAll(".todo-card").length;
+			col.querySelector("#todoCount").textContent = count;
+		});
 	};
 
 	// Adding EventListeners
@@ -101,10 +248,22 @@ document.addEventListener("DOMContentLoaded", () => {
 			toggleModalVisibility(false);
 		});
 	});
+	todoCols.forEach((elem) => {
+		elem.addEventListener("drop", (ev) => {
+			handleTodoDragOver(ev, elem);
+		});
+	});
+	todoCols.forEach((col) => {
+		col.addEventListener("dragover", (event) => {
+			if (event.dataTransfer.types.includes("task")) {
+				event.preventDefault();
+			}
+		});
+	});
 
-	submitTodoBtn.addEventListener("click", handleTodoSubmit);
+	(() => {
+		readTodosLocalStorage();
+		if (todos === undefined) return;
+		todos.forEach((todo) => createTodoElement(todo));
+	})();
 });
-const handleTodoDelete = (id) => {
-	document.getElementById(id).remove();
-	console.log("I was called");
-};

@@ -19,17 +19,26 @@
 			<button class="btn add-todo-btn">Add Card</button>
 		</header>
 		<main>
-			<section class="">
-				<div class="title">Todo</div>
+			<section class="todoCol" data-state="todo">
+				<div class="title">
+					Todo
+					<span id="todoCount">0</span>
+				</div>
 				<div class="card-container todo-container"></div>
 			</section>
-			<section class="">
-				<div class="title">In Progress</div>
+			<section class="todoCol" data-state="inProgress">
+				<div class="title">
+					In Progress
+					<span id="todoCount">0</span>
+				</div>
 
 				<div class="card-container in-progress-container"></div>
 			</section>
-			<section>
-				<div class="title">Completed</div>
+			<section class="todoCol" data-state="completed">
+				<div class="title">
+					Completed
+					<span id="todoCount">0</span>
+				</div>
 
 				<div class="card-container completed-container"></div>
 			</section>
@@ -74,6 +83,14 @@
 					<div class="input-group flex">
 						<label for="todoDueDate">Due Date:</label>
 						<input type="date" name="DueDate" id="todoDueDate" />
+					</div>
+					<div class="input-group flex">
+						<label for="todoState">State:</label>
+						<select name="State" id="todoState">
+							<option value="todo">Todo</option>
+							<option value="inProgress">In Progress</option>
+							<option value="completed">Completed</option>
+						</select>
 					</div>
 				</div>
 				<div class="modal-actions flex">
