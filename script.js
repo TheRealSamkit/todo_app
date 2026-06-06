@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			todoModal.addEventListener(
 				"click",
 				(ev) => {
-					if (ev.target === overlay) {
+					if (ev.target === todoModal) {
 					   toggleModalVisibility(false);
 				},
 				{ once: true },
