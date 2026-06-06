@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
 				"click",
 				(ev) => {
 					if (ev.target === todoModal) {
-					   toggleModalVisibility(false);
+					   toggleModalVisibility(false);}
 				},
 				{ once: true },
 			);
