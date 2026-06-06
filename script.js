@@ -30,8 +30,9 @@ document.addEventListener("DOMContentLoaded", () => {
 			modalTitle.textContent = "Add New Todo";
 			todoModal.addEventListener(
 				"click",
-				() => {
-					toggleModalVisibility(false);
+				(ev) => {
+					if (ev.target === overlay) {
+					   toggleModalVisibility(false);
 				},
 				{ once: true },
 			);
