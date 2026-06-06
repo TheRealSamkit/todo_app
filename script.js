@@ -13,6 +13,8 @@ document.addEventListener("DOMContentLoaded", () => {
 	const todoCols = document.querySelectorAll(".todoCol");
 	const themeToggle = document.querySelector(".theme-toggle");
 
+	let isMobile = false;
+
 	// functions
 	const toggleModalVisibility = (bool, mode = "open", id = null) => {
 		let modalTitle = document.querySelector(".form-action");
@@ -26,9 +28,17 @@ document.addEventListener("DOMContentLoaded", () => {
 			todoStateInp.parentNode.classList.add("hide");
 			todoModal.classList.add("flex");
 			modalTitle.textContent = "Add New Todo";
+			todoModal.addEventListener(
+				"click",
+				() => {
+					toggleModalVisibility(false);
+				},
+				{ once: true },
+			);
 		} else {
 			todoModal.classList.add("hide");
 			todoModal.classList.remove("flex");
+			return;
 		}
 
 		if (mode === "edit" && id !== null) {
@@ -189,7 +199,7 @@ document.addEventListener("DOMContentLoaded", () => {
 				<p class="todo-description">
 						${todo.todoDesc}
 				</p>
-			<div class="todo-due-date ${new Date().toISOString().split("T")[0] === todo.todoDueDate ? "date-overdue" : ""}">Due: ${todo.todoDueDate}</div>`,
+			<div class="todo-due-date ${new Date().toISOString().split("T")[0] === todo.todoDueDate ? "date-overdue" : ""}">Due: ${new Intl.DateTimeFormat("en-GB").format(new Date(todo.todoDueDate))}</div>`,
 		});
 		{
 			todoDiv

@@ -295,7 +295,7 @@ select {
 input:focus-visible,
 textarea:focus-visible,
 select:focus-visible {
-	outline: 2px solid #737373;
+	outline: 2px solid var(--gray-500);
 }
 
 .input-group {
@@ -309,7 +309,7 @@ select:focus-visible {
 }
 
 .false {
-	outline: 2px solid rgb(241, 27, 27);
+	outline: 2px solid var(--danger);
 	animation: shake 0.5s ease-out;
 }
 @keyframes shake {
