@@ -4,7 +4,6 @@ document.addEventListener("DOMContentLoaded", () => {
 	const addNewTodoBtn = document.querySelector(".add-todo-btn");
 	const todoModal = document.querySelector(".modal");
 	const closeModalBtn = document.querySelectorAll(".btn-cancel-todo");
-	const submitTodoBtn = document.querySelector(".btn-submit-todo");
 
 	const todoTitleInp = document.querySelector("#todoTitle");
 	const todoDescInp = document.querySelector("#todoDescription");
@@ -17,6 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	// functions
 	const toggleModalVisibility = (bool, mode = "open", id = null) => {
+		const submitTodoBtn = document.querySelector(".btn-submit-todo");
 		let modalTitle = document.querySelector(".form-action");
 		if (bool) {
 			todoModal.classList.remove("hide");
@@ -40,6 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		} else {
 			todoModal.classList.add("hide");
 			todoModal.classList.remove("flex");
+			submitTodoBtn.replaceWith(submitTodoBtn.cloneNode(true));
 			return;
 		}
 
@@ -48,7 +49,8 @@ document.addEventListener("DOMContentLoaded", () => {
 			const idx = getTodoIndex(id);
 			let todoData = todos[idx];
 
-			modalTitle.textContent = "Edit " + todoData.todoTitle.substring(0, 12) + "...";
+			modalTitle.textContent =
+				"Edit " + todoData.todoTitle.substring(0, 16) + `${todoTitle.length >= 16 ? "..." : ""}`;
 
 			todoTitleInp.value = todoData.todoTitle;
 			todoDescInp.value = todoData.todoDesc;
@@ -68,7 +70,6 @@ document.addEventListener("DOMContentLoaded", () => {
 		submitTodoBtn.addEventListener(
 			"click",
 			() => {
-				console.log("Event Listener was attached todo Submit Button");
 				handleTodoSubmit((mode = "add"));
 			},
 			{ once: true },
@@ -89,7 +90,8 @@ document.addEventListener("DOMContentLoaded", () => {
 			todoDueDateInp.classList.add("false");
 			return;
 		}
-		document.querySelectorAll(".false").classList.remove("false");
+		todoTitleInp.classList.remove("false");
+		todoDueDateInp.classList.remove("false");
 		if (mode === "add") {
 			todoId = `${todoTitle.replace(/\s/g, "").substring(0, 5)}${Date.now()}`.toString().substring(0, 12);
 			todoObj = { todoId, todoTitle, todoDesc, todoDueDate, state: "todo" };
@@ -207,10 +209,10 @@ document.addEventListener("DOMContentLoaded", () => {
 		parent.appendChild(todoDiv);
 		updateTodoCount();
 	};
-	const handleTodoDragStart = (event) => {
-		todoDragging = document.getElementById(event.target.id);
-		event.dataTransfer.effectAllowed = "move";
-		event.dataTransfer.setData("task", "");
+	const handleTodoDragStart = (ev) => {
+		todoDragging = document.getElementById(ev.target.id);
+		ev.dataTransfer.effectAllowed = "move";
+		ev.dataTransfer.setData("task", "");
 	};
 
 	const handleTodoDragEnd = (ev, column) => {
@@ -221,6 +223,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		column.children[1].appendChild(todoDragging);
 		const idx = getTodoIndex(todoDragging.id);
 		todos[idx].state = column.dataset.state;
+		document.querySelectorAll(".placeholder").forEach((el) => el.remove());
 		updateTodosLocalStorage();
 		updateTodoCount();
 	};
@@ -259,6 +262,19 @@ document.addEventListener("DOMContentLoaded", () => {
 		return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 	};
 
+	const makePlaceHolder = () => {
+		const placeholder = document.createElement("div");
+		placeholder.classList.add("placeholder");
+		placeholder.innerHTML = `<div class="todo-header">
+									<span class="todo-title"></span>
+								</div>
+								<p class="todo-description"></p>
+								<div class="todo-due-date"></div>`;
+		return placeholder;
+	};
+
+	const movePlaceHolder = (ev) => {};
+
 	// Adding EventListeners
 	addNewTodoBtn.addEventListener("click", () => {
 		toggleModalVisibility(true);
@@ -269,15 +285,19 @@ document.addEventListener("DOMContentLoaded", () => {
 		});
 	});
 	todoCols.forEach((col) => {
+		col.addEventListener("dragover", (ev) => {
+			movePlaceHolder(ev);
+			if (!ev.dataTransfer.types.includes("task")) {
+				return;
+			}
+			ev.preventDefault();
+			let cardContainer = col.querySelector(".card-container");
+			if (cardContainer.querySelector(".placeholder")) return;
+
+			cardContainer.appendChild(makePlaceHolder());
+		});
 		col.addEventListener("drop", (ev) => {
 			handleTodoDragEnd(ev, col);
-		});
-	});
-	todoCols.forEach((col) => {
-		col.addEventListener("dragover", (ev) => {
-			if (ev.dataTransfer.types.includes("task")) {
-				ev.preventDefault();
-			}
 		});
 	});
 	themeToggle.addEventListener("click", setTheme);

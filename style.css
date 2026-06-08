@@ -155,7 +155,8 @@ section {
 	z-index: 500;
 }
 
-.todo-card {
+.todo-card,
+.placeholder {
 	margin: calc(var(--size) * 2);
 	padding: calc(var(--size) * 2);
 	align-items: start;
@@ -179,6 +180,27 @@ section {
 .auto-scroll {
 	display: inline-block;
 	animation: scroll 12s linear infinite 2s;
+}
+
+.placeholder {
+	height: 120px;
+}
+
+.placeholder .todo-header {
+	height: 30%;
+	width: 70%;
+	border-radius: var(--size);
+	background-color: var(--gray-800);
+	padding: calc(var(--size) * 2);
+}
+
+.placeholder .todo-description {
+	height: 30%;
+	width: 80%;
+	border-radius: var(--size);
+	background-color: var(--gray-800);
+	padding: calc(var(--size) * 3);
+	margin-top: var(--size);
 }
 
 @keyframes scroll {
