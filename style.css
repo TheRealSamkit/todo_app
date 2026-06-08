@@ -175,6 +175,7 @@ section {
 
 .todo-title {
 	width: 60%;
+	text-wrap-mode: nowrap;
 }
 
 .auto-scroll {
