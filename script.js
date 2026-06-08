@@ -187,25 +187,24 @@ document.addEventListener("DOMContentLoaded", () => {
 				</p>
 			<div class="todo-due-date ${new Date().toISOString().split("T")[0] === todo.todoDueDate ? "date-overdue" : ""}">Due: ${new Intl.DateTimeFormat("en-GB").format(new Date(todo.todoDueDate))}</div>`,
 		});
-		{
-			todoDiv.querySelector(".btn-delete").addEventListener("click", () => {
-				handleTodoDelete(todo.todoId);
-			});
-			todoDiv.querySelector(".btn-edit").addEventListener("click", () => {
-				toggleModalVisibility(true, (mode = "edit"), todo.todoId);
-			});
-			todoDiv.querySelector(".drag-btn").addEventListener("mousedown", () => {
-				todoDiv.draggable = true;
-				todoDiv.style.opacity = 0.5;
-			});
-			todoDiv.querySelector(".drag-btn").addEventListener("mouseout", () => {
-				todoDiv.draggable = false;
-				todoDiv.style.opacity = 1;
-			});
-			todoDiv.addEventListener("dragstart", (event) => {
-				handleTodoDragStart(event);
-			});
-		}
+		todoDiv.dataset.state = todo.state;
+		todoDiv.querySelector(".btn-delete").addEventListener("click", () => {
+			handleTodoDelete(todo.todoId);
+		});
+		todoDiv.querySelector(".btn-edit").addEventListener("click", () => {
+			toggleModalVisibility(true, (mode = "edit"), todo.todoId);
+		});
+		todoDiv.querySelector(".drag-btn").addEventListener("mousedown", () => {
+			todoDiv.draggable = true;
+			todoDiv.style.opacity = 0.5;
+		});
+		todoDiv.querySelector(".drag-btn").addEventListener("mouseout", () => {
+			todoDiv.draggable = false;
+			todoDiv.style.opacity = 1;
+		});
+		todoDiv.addEventListener("dragstart", (event) => {
+			handleTodoDragStart(event);
+		});
 		parent.appendChild(todoDiv);
 		updateTodoCount();
 	};
@@ -223,7 +222,8 @@ document.addEventListener("DOMContentLoaded", () => {
 		column.children[1].appendChild(todoDragging);
 		const idx = getTodoIndex(todoDragging.id);
 		todos[idx].state = column.dataset.state;
-		document.querySelectorAll(".placeholder").forEach((el) => el.remove());
+		// document.querySelectorAll(".placeholder").forEach((el) => el.remove());
+		// todoDragging = null;
 		updateTodosLocalStorage();
 		updateTodoCount();
 	};
@@ -273,8 +273,6 @@ document.addEventListener("DOMContentLoaded", () => {
 		return placeholder;
 	};
 
-	const movePlaceHolder = (ev) => {};
-
 	// Adding EventListeners
 	addNewTodoBtn.addEventListener("click", () => {
 		toggleModalVisibility(true);
@@ -286,15 +284,15 @@ document.addEventListener("DOMContentLoaded", () => {
 	});
 	todoCols.forEach((col) => {
 		col.addEventListener("dragover", (ev) => {
-			movePlaceHolder(ev);
 			if (!ev.dataTransfer.types.includes("task")) {
 				return;
 			}
 			ev.preventDefault();
-			let cardContainer = col.querySelector(".card-container");
-			if (cardContainer.querySelector(".placeholder")) return;
-
-			cardContainer.appendChild(makePlaceHolder());
+			// let cardContainer = col.querySelector(".card-container");
+			// console.log(todoDragging);
+			// if (cardContainer.querySelector(".placeholder")) return;
+			// if (todoDragging.dataset.state === col.dataset.state) return;
+			// cardContainer.appendChild(makePlaceHolder());
 		});
 		col.addEventListener("drop", (ev) => {
 			handleTodoDragEnd(ev, col);
