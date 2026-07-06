@@ -80,6 +80,9 @@ body {
 	width: 100%;
 	height: 100svh;
 	position: relative;
+	/* transition:
+		background-color 0.3s ease,
+		color 0.3s ease; */
 }
 
 .flex {
@@ -100,9 +103,6 @@ header {
 
 header h2 {
 	font-size: clamp(1em, 18px, 2rem);
-}
-
-.btn-wrapper {
 }
 
 main {
@@ -132,8 +132,12 @@ section {
 .title {
 	text-align: center;
 	position: relative;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
 	padding: var(--size);
-	background-color: var(--gray-800);
+	background-color: oklch(from var(--gray-900) calc(l + 0.1) c h);
 	border-top-left-radius: var(--border-radius);
 	border-top-right-radius: var(--border-radius);
 	font-size: calc(var(--size) * 3);
@@ -145,6 +149,7 @@ section {
 	top: 2px;
 	right: 2px;
 	background-color: var(--gray-900);
+	/* background-color: oklch(from var(--gray-900) calc(l + 0.1) c h); */
 	padding: 4px 10px;
 	border-radius: 50%;
 	border: 1px solid var(--border-color);
@@ -240,7 +245,10 @@ section {
 
 .btn {
 	all: unset;
-
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
 	display: inline-block;
 	background-color: var(--primary);
 	color: var(--white);
@@ -361,6 +369,21 @@ select:focus-visible {
 	color: var(--danger);
 }
 
+::view-transition-old(root) {
+	animation-delay: 0.3s;
+}
+::view-transition-new(root) {
+	animation: circle-timepass 0.3s;
+}
+@keyframes circle-timepass {
+	from {
+		clip-path: circle(0% at 93% 3%);
+	}
+	to {
+		clip-path: circle(100% at 50% 50%);
+	}
+}
+
 @media (max-width: 768px) {
 	main {
 		grid-template-columns: 1fr;
@@ -377,6 +400,14 @@ select:focus-visible {
 	}
 	.modal-body {
 		width: 90%;
+	}
+	@keyframes circle-timepass {
+		from {
+			clip-path: circle(0% at 69% 3%);
+		}
+		to {
+			clip-path: circle(100% at 50% 50%);
+		}
 	}
 }
 
