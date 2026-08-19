@@ -1,4 +1,4 @@
-let todos = null;
+let todos = [];
 document.addEventListener("DOMContentLoaded", () => {
 	let todoDragging = null;
 	const addNewTodoBtn = document.querySelectorAll(".add-todo-btn");
@@ -11,6 +11,13 @@ document.addEventListener("DOMContentLoaded", () => {
 	const todoStateInp = document.querySelector("#todoState");
 	const todoCols = document.querySelectorAll(".todoCol");
 	const themeToggle = document.querySelector(".theme-toggle");
+
+	const emptyMessages = [
+		"Your to-do list is empty. Suspicious.",
+		"Nothing to do? Bold strategy.",
+		"Look at you, all caught up. Weird flex.",
+		"The void stares back. Add a task.",
+	];
 
 	let isMobile = false;
 
@@ -27,6 +34,8 @@ document.addEventListener("DOMContentLoaded", () => {
 			todoDescInp.value = "";
 			todoDueDateInp.value = "";
 			todoStateInp.value = "todo";
+
+			todoTitleInp.focus();
 			modalTitle.textContent = "Add New Todo";
 			todoModal.addEventListener(
 				"click",
@@ -49,8 +58,9 @@ document.addEventListener("DOMContentLoaded", () => {
 			const idx = getTodoIndex(id);
 			let todoData = todos[idx];
 
+			todoTitleInp.focus();
 			modalTitle.textContent =
-				"Edit " + todoData.todoTitle.substring(0, 16) + `${todoTitle.length >= 16 ? "..." : ""}`;
+				"Edit " + todoData.todoTitle.substring(0, 16) + `${todoData.todoTitle.length >= 16 ? "..." : ""}`;
 
 			todoTitleInp.value = todoData.todoTitle;
 			todoDescInp.value = todoData.todoDesc;
@@ -73,6 +83,8 @@ document.addEventListener("DOMContentLoaded", () => {
 	};
 
 	const handleTodoSubmit = (id = null, mode = "add", idx = null) => {
+		const submitTodoBtn = document.querySelector(".btn-submit-todo");
+
 		let todoTitle = todoTitleInp.value;
 		let todoDesc = todoDescInp.value;
 		let todoDueDate = todoDueDateInp.value;
@@ -81,6 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 		todoTitleInp.classList.remove("false");
 		todoDueDateInp.classList.remove("false");
+		todoTitle = todoTitle.trim();
 		if (todoTitle === null || todoTitle === "") {
 			todoTitleInp.classList.add("false");
 			return;
@@ -90,7 +103,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			return;
 		}
 		if (mode === "add") {
-			todoId = `${todoTitle.replace(/\s/g, "").substring(0, 5)}${Date.now()}`.toString().substring(0, 12);
+			let todoId = `${todoTitle.replace(/\s/g, "").substring(0, 5)}${Date.now()}`.toString().substring(6);
 			todoObj = { todoId, todoTitle, todoDesc, todoDueDate, state: "todo" };
 		}
 
@@ -103,7 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		updateTodosLocalStorage();
 		createTodoElement(todoObj);
 		toggleModalVisibility(false);
-		document.querySelector(".btn-submit-todo").removeEventListener("click", () => handleTodoSubmit((mode = "add")));
+		submitTodoBtn.replaceWith(submitTodoBtn.cloneNode(true));
 	};
 
 	const handleTodoDelete = (id) => {
@@ -129,6 +142,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		todos = JSON.parse(localStorage.getItem("todos"));
 		return;
 	};
+
 	const createTodoElement = (todo) => {
 		const todoItemsContainer = document.querySelector(".todo-container");
 		const inProgressItemsContainer = document.querySelector(".in-progress-container");
@@ -144,53 +158,58 @@ document.addEventListener("DOMContentLoaded", () => {
 			id: todo.todoId,
 			draggable: false,
 			innerHTML: `<div class="todo-header flex">
-							<span class="todo-title ${todo.todoTitle.length >= 30 ? "auto-scroll" : ""}">
-								${todo.todoTitle}
-							</span>
+							<span class="todo-title"> </span>
 							<div class="action-wrapper">
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									viewBox="0 0 512 512"
-									class="icon btn-edit"
-								>
-									<path
-										d="M441 58.9L453.1 71c9.4 9.4 9.4 24.6 0 33.9L424 134.1 377.9 88 407 58.9c9.4-9.4 24.6-9.4 33.9 0zM209.8 256.2L344 121.9 390.1 168 255.8 302.2c-2.9 2.9-6.5 5-10.4 6.1l-58.5 16.7 16.7-58.5c1.1-3.9 3.2-7.5 6.1-10.4zM373.1 25L175.8 222.2c-8.7 8.7-15 19.4-18.3 31.1l-28.6 100c-2.4 8.4-.1 17.4 6.1 23.6s15.2 8.5 23.6 6.1l100-28.6c11.8-3.4 22.5-9.7 31.1-18.3L487 138.9c28.1-28.1 28.1-73.7 0-101.8L474.9 25C446.8-3.1 401.2-3.1 373.1 25zM88 64C39.4 64 0 103.4 0 152L0 424c0 48.6 39.4 88 88 88l272 0c48.6 0 88-39.4 88-88l0-112c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 112c0 22.1-17.9 40-40 40L88 464c-22.1 0-40-17.9-40-40l0-272c0-22.1 17.9-40 40-40l112 0c13.3 0 24-10.7 24-24s-10.7-24-24-24L88 64z"
-									/>
-								</svg>
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									viewBox="0 0 448 512"
-									class="icon btn-delete"
-								>
-									<path
-										d="M136.7 5.9C141.1-7.2 153.3-16 167.1-16l113.9 0c13.8 0 26 8.8 30.4 21.9L320 32 416 32c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 96C14.3 96 0 81.7 0 64S14.3 32 32 32l96 0 8.7-26.1zM32 144l384 0 0 304c0 35.3-28.7 64-64 64L96 512c-35.3 0-64-28.7-64-64l0-304zm88 64c-13.3 0-24 10.7-24 24l0 192c0 13.3 10.7 24 24 24s24-10.7 24-24l0-192c0-13.3-10.7-24-24-24zm104 0c-13.3 0-24 10.7-24 24l0 192c0 13.3 10.7 24 24 24s24-10.7 24-24l0-192c0-13.3-10.7-24-24-24zm104 0c-13.3 0-24 10.7-24 24l0 192c0 13.3 10.7 24 24 24s24-10.7 24-24l0-192c0-13.3-10.7-24-24-24z"
-									/>
-								</svg>
-								<svg
-									xmlns="http://www.w3.org/2000/svg"
-									height="30"
-									width="30"
-									viewBox="0 0 640 640"
-									class="drag-btn icon"
-									data-todo-id=${todo.todoId}
-								>
-									<path
-										d="M288 104C288 81.9 270.1 64 248 64L200 64C177.9 64 160 81.9 160 104L160 152C160 174.1 177.9 192 200 192L248 192C270.1 192 288 174.1 288 152L288 104zM288 296C288 273.9 270.1 256 248 256L200 256C177.9 256 160 273.9 160 296L160 344C160 366.1 177.9 384 200 384L248 384C270.1 384 288 366.1 288 344L288 296zM160 488L160 536C160 558.1 177.9 576 200 576L248 576C270.1 576 288 558.1 288 536L288 488C288 465.9 270.1 448 248 448L200 448C177.9 448 160 465.9 160 488zM480 104C480 81.9 462.1 64 440 64L392 64C369.9 64 352 81.9 352 104L352 152C352 174.1 369.9 192 392 192L440 192C462.1 192 480 174.1 480 152L480 104zM352 296L352 344C352 366.1 369.9 384 392 384L440 384C462.1 384 480 366.1 480 344L480 296C480 273.9 462.1 256 440 256L392 256C369.9 256 352 273.9 352 296zM480 488C480 465.9 462.1 448 440 448L392 448C369.9 448 352 465.9 352 488L352 536C352 558.1 369.9 576 392 576L440 576C462.1 576 480 558.1 480 536L480 488z"
-									/>
-								</svg>
+								<button class="btn-edit">
+									<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon">
+										<path
+											d="M441 58.9L453.1 71c9.4 9.4 9.4 24.6 0 33.9L424 134.1 377.9 88 407 58.9c9.4-9.4 24.6-9.4 33.9 0zM209.8 256.2L344 121.9 390.1 168 255.8 302.2c-2.9 2.9-6.5 5-10.4 6.1l-58.5 16.7 16.7-58.5c1.1-3.9 3.2-7.5 6.1-10.4zM373.1 25L175.8 222.2c-8.7 8.7-15 19.4-18.3 31.1l-28.6 100c-2.4 8.4-.1 17.4 6.1 23.6s15.2 8.5 23.6 6.1l100-28.6c11.8-3.4 22.5-9.7 31.1-18.3L487 138.9c28.1-28.1 28.1-73.7 0-101.8L474.9 25C446.8-3.1 401.2-3.1 373.1 25zM88 64C39.4 64 0 103.4 0 152L0 424c0 48.6 39.4 88 88 88l272 0c48.6 0 88-39.4 88-88l0-112c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 112c0 22.1-17.9 40-40 40L88 464c-22.1 0-40-17.9-40-40l0-272c0-22.1 17.9-40 40-40l112 0c13.3 0 24-10.7 24-24s-10.7-24-24-24L88 64z"
+										/>
+									</svg>
+								</button>
+								<button class="btn-delete">
+									<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon">
+										<path
+											d="M136.7 5.9C141.1-7.2 153.3-16 167.1-16l113.9 0c13.8 0 26 8.8 30.4 21.9L320 32 416 32c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 96C14.3 96 0 81.7 0 64S14.3 32 32 32l96 0 8.7-26.1zM32 144l384 0 0 304c0 35.3-28.7 64-64 64L96 512c-35.3 0-64-28.7-64-64l0-304zm88 64c-13.3 0-24 10.7-24 24l0 192c0 13.3 10.7 24 24 24s24-10.7 24-24l0-192c0-13.3-10.7-24-24-24zm104 0c-13.3 0-24 10.7-24 24l0 192c0 13.3 10.7 24 24 24s24-10.7 24-24l0-192c0-13.3-10.7-24-24-24zm104 0c-13.3 0-24 10.7-24 24l0 192c0 13.3 10.7 24 24 24s24-10.7 24-24l0-192c0-13.3-10.7-24-24-24z"
+										/>
+									</svg>
+								</button>
+
+								<button class="drag-btn">
+									<svg
+										xmlns="http://www.w3.org/2000/svg"
+										viewBox="0 0 640 640"
+										data-todo-id="${todo.todoId}"
+										class="icon"
+									>
+										<path
+											d="M288 104C288 81.9 270.1 64 248 64L200 64C177.9 64 160 81.9 160 104L160 152C160 174.1 177.9 192 200 192L248 192C270.1 192 288 174.1 288 152L288 104zM288 296C288 273.9 270.1 256 248 256L200 256C177.9 256 160 273.9 160 296L160 344C160 366.1 177.9 384 200 384L248 384C270.1 384 288 366.1 288 344L288 296zM160 488L160 536C160 558.1 177.9 576 200 576L248 576C270.1 576 288 558.1 288 536L288 488C288 465.9 270.1 448 248 448L200 448C177.9 448 160 465.9 160 488zM480 104C480 81.9 462.1 64 440 64L392 64C369.9 64 352 81.9 352 104L352 152C352 174.1 369.9 192 392 192L440 192C462.1 192 480 174.1 480 152L480 104zM352 296L352 344C352 366.1 369.9 384 392 384L440 384C462.1 384 480 366.1 480 344L480 296C480 273.9 462.1 256 440 256L392 256C369.9 256 352 273.9 352 296zM480 488C480 465.9 462.1 448 440 448L392 448C369.9 448 352 465.9 352 488L352 536C352 558.1 369.9 576 392 576L440 576C462.1 576 480 558.1 480 536L480 488z"
+										/>
+									</svg>
+								</button>
 							</div>
 						</div>
-				<p class="todo-description">
-						${todo.todoDesc}
-				</p>
-			<div class="todo-due-date ${new Date().toISOString().split("T")[0] === todo.todoDueDate ? "date-overdue" : ""}">Due: ${new Intl.DateTimeFormat("en-GB").format(new Date(todo.todoDueDate))}</div>`,
+						<p class="todo-description"></p>
+						<div class="todo-due-date">Due:</div>`,
 		});
 		todoDiv.dataset.state = todo.state;
+
+		titleSpan = todoDiv.querySelector(".todo-title");
+		titleSpan.textContent = todo.todoTitle;
+		titleSpan.classList.toggle("auto-scroll", todo.todoTitle.length >= 30);
+
+		todoDiv.querySelector(".todo-description").textContent = todo.todoDesc;
+
+		dueDateDiv = todoDiv.querySelector(".todo-due-date");
+		dueDateDiv.classList.toggle("date-overdue", new Date().toISOString().split("T")[0] > todo.todoDueDate);
+		dueDateDiv.append(document.createTextNode(new Intl.DateTimeFormat("en-GB").format(new Date(todo.todoDueDate))));
+
+		// Adding event Listeners...
 		todoDiv.querySelector(".btn-delete").addEventListener("click", () => {
 			handleTodoDelete(todo.todoId);
 		});
 		todoDiv.querySelector(".btn-edit").addEventListener("click", () => {
-			toggleModalVisibility(true, (mode = "edit"), todo.todoId);
+			toggleModalVisibility(true, "edit", todo.todoId);
 		});
 		todoDiv.querySelector(".drag-btn").addEventListener("mousedown", () => {
 			todoDiv.draggable = true;
@@ -203,10 +222,13 @@ document.addEventListener("DOMContentLoaded", () => {
 		todoDiv.addEventListener("dragstart", (event) => {
 			handleTodoDragStart(event);
 		});
+
+		//Final Append, Cleanup and Update in count
 		parent.appendChild(todoDiv);
 		toggleEmptyState(false);
 		updateTodoCount();
 	};
+
 	const handleTodoDragStart = (ev) => {
 		todoDragging = document.getElementById(ev.target.id);
 		ev.dataTransfer.effectAllowed = "move";
@@ -216,25 +238,47 @@ document.addEventListener("DOMContentLoaded", () => {
 	const handleTodoDragEnd = (ev, column) => {
 		ev.preventDefault();
 
+		if (column.dataset.state === "completed") confettiAnimation();
 		todoDragging.remove();
 		todoDragging.style.opacity = 1;
-		column.children[1].appendChild(todoDragging);
+		column.querySelector(".card-container").appendChild(todoDragging);
 		const idx = getTodoIndex(todoDragging.id);
 		todos[idx].state = column.dataset.state;
-		// document.querySelectorAll(".placeholder").forEach((el) => el.remove());
 		todoDragging = null;
 		updateTodosLocalStorage();
 		updateTodoCount();
+		// document.querySelectorAll(".placeholder").forEach((el) => el.remove());
 	};
+
+	function rand(len) {
+		return Math.floor(Math.random() * len);
+	}
 
 	const getTodoIndex = (todoId) => {
 		return todos.findIndex((todo) => todo.todoId === todoId);
 	};
 
+	const confettiAnimation = () => {
+		const duration = 3000;
+		const animationEnd = Date.now() + duration;
+		const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+		const interval = setInterval(() => {
+			const timeLeft = animationEnd - Date.now();
+			if (timeLeft <= 0) return clearInterval(interval);
+
+			const particleCount = 50 * (timeLeft / duration);
+			const createConfetti = (x) =>
+				confetti({ ...defaults, particleCount, origin: { x, y: Math.random() - 0.2 } });
+			createConfetti(0.2);
+			createConfetti(0.8);
+		}, 250);
+	};
+
 	const updateTodoCount = () => {
 		todoCols.forEach((col) => {
 			let count = col.querySelectorAll(".todo-card").length;
-			col.querySelector("#todoCount").textContent = count;
+			col.querySelector(".todo-count").textContent = count;
 		});
 	};
 
@@ -257,6 +301,9 @@ document.addEventListener("DOMContentLoaded", () => {
 	};
 
 	const toggleEmptyState = (bool) => {
+		if (bool) {
+			document.querySelector(".empty-title").textContent = emptyMessages[rand(emptyMessages.length)];
+		}
 		document.querySelector(".something").classList = bool ? "something hide" : "something";
 		document.querySelector(".empty-todo").classList = bool ? "empty-todo flex" : "empty-todo hide";
 	};

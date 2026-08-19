@@ -144,7 +144,7 @@ main section {
 	border-bottom: 1px solid var(--border-color);
 }
 
-#todoCount {
+.todo-count {
 	position: absolute;
 	top: 2px;
 	right: 2px;
@@ -219,6 +219,41 @@ main section {
 	}
 }
 
+.drag-btn {
+	position: relative;
+}
+
+.drag-btn::before {
+	content: "";
+	position: absolute;
+	top: -10px;
+	right: -10px;
+	bottom: -10px;
+	left: -8px;
+	pointer-events: none;
+	/* background: red; */
+	/* -- uncomment to visualize the hitbox while testing */
+}
+
+.drag-btn .icon {
+	cursor: grab;
+}
+
+.btn-edit .icon {
+	fill: var(--primary);
+}
+
+.btn-delete .icon {
+	fill: var(--danger) !important;
+}
+
+.btn-delete,
+.btn-edit,
+.drag-btn {
+	background: none;
+	border: none;
+}
+
 .icon {
 	border-radius: var(--border-radius);
 	padding: 4px;
@@ -230,18 +265,6 @@ main section {
 
 .icon:hover {
 	background-color: var(--gray-700);
-}
-
-.drag-btn {
-	cursor: grab;
-}
-
-.btn-edit {
-	fill: var(--primary);
-}
-
-.btn-delete {
-	fill: var(--danger) !important;
 }
 
 .btn {
@@ -268,8 +291,18 @@ main section {
 	background-color: #025ace;
 }
 
+.btn-secondary {
+	--btn-bg-color: var(--secondary) !important;
+	background-color: var(--secondary);
+}
+
+.btn-primary {
+	--btn-bg-color: var(--primary) !important;
+	background-color: var(--primary);
+}
+
 .btn:focus-visible {
-	outline: 3px solid #003d8ebc;
+	outline: 5px solid rgb(from var(--btn-bg-color) r g b / 0.5);
 	background-color: #025ace;
 }
 

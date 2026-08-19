@@ -28,4 +28,4 @@ A simple Kanban-style todo board that runs entirely in the browser.
 - Improve responsive layout
 - UX tweaks
 - Export todos as JSON
-- Show placeholder and empty states
+- Show placeholder and empty states [Done]
