@@ -1,6 +1,9 @@
 let todos = [];
 document.addEventListener("DOMContentLoaded", () => {
 	let todoDragging = null;
+
+	//Initializations...?
+
 	const addNewTodoBtn = document.querySelectorAll(".add-todo-btn");
 	const todoModal = document.querySelector(".modal");
 	const closeModalBtn = document.querySelectorAll(".btn-cancel-todo");
@@ -36,7 +39,9 @@ document.addEventListener("DOMContentLoaded", () => {
 			todoStateInp.value = "todo";
 
 			todoTitleInp.focus();
-			modalTitle.textContent = "Add New Todo";
+			modalTitle.textContent = "Add New Task";
+			submitTodoBtn.textContent = "Add Task";
+
 			todoModal.addEventListener(
 				"click",
 				(ev) => {
@@ -61,6 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			todoTitleInp.focus();
 			modalTitle.textContent =
 				"Edit " + todoData.todoTitle.substring(0, 16) + `${todoData.todoTitle.length >= 16 ? "..." : ""}`;
+			submitTodoBtn.textContent = "Update Task";
 
 			todoTitleInp.value = todoData.todoTitle;
 			todoDescInp.value = todoData.todoDesc;
@@ -80,56 +86,6 @@ document.addEventListener("DOMContentLoaded", () => {
 		submitTodoBtn.addEventListener("click", () => {
 			handleTodoSubmit((mode = "add"));
 		});
-	};
-
-	const handleTodoSubmit = (id = null, mode = "add", idx = null) => {
-		const submitTodoBtn = document.querySelector(".btn-submit-todo");
-
-		let todoTitle = todoTitleInp.value;
-		let todoDesc = todoDescInp.value;
-		let todoDueDate = todoDueDateInp.value;
-		let todoState = todoStateInp.value;
-		let todoObj = {};
-
-		todoTitleInp.classList.remove("false");
-		todoDueDateInp.classList.remove("false");
-		todoTitle = todoTitle.trim();
-		if (todoTitle === null || todoTitle === "") {
-			todoTitleInp.classList.add("false");
-			return;
-		}
-		if (todoDueDate === null || todoDueDate === "") {
-			todoDueDateInp.classList.add("false");
-			return;
-		}
-		if (mode === "add") {
-			let todoId = `${todoTitle.replace(/\s/g, "").substring(0, 5)}${Date.now()}`.toString().substring(6);
-			todoObj = { todoId, todoTitle, todoDesc, todoDueDate, state: "todo" };
-		}
-
-		if (mode === "edit" && id !== null && idx !== null) {
-			todoObj = { todoId: id, todoTitle, todoDesc, todoDueDate, state: todoState };
-			handleTodoDelete(id);
-		}
-
-		todos.unshift(todoObj);
-		updateTodosLocalStorage();
-		createTodoElement(todoObj);
-		toggleModalVisibility(false);
-		submitTodoBtn.replaceWith(submitTodoBtn.cloneNode(true));
-	};
-
-	const handleTodoDelete = (id) => {
-		const idx = getTodoIndex(id);
-
-		if (idx !== -1) {
-			todos.splice(idx, 1);
-		}
-		console.log("Removing with index: ", idx, "with id: ", id);
-		if (todos.length === 0) toggleEmptyState(true);
-		document.getElementById(id).remove();
-		updateTodosLocalStorage();
-		updateTodoCount();
 	};
 
 	const updateTodosLocalStorage = () => {
@@ -190,7 +146,7 @@ document.addEventListener("DOMContentLoaded", () => {
 							</div>
 						</div>
 						<p class="todo-description"></p>
-						<div class="todo-due-date">Due:</div>`,
+						<div class="todo-due-date">Due: </div>`,
 		});
 		todoDiv.dataset.state = todo.state;
 
@@ -201,7 +157,10 @@ document.addEventListener("DOMContentLoaded", () => {
 		todoDiv.querySelector(".todo-description").textContent = todo.todoDesc;
 
 		dueDateDiv = todoDiv.querySelector(".todo-due-date");
-		dueDateDiv.classList.toggle("date-overdue", new Date().toISOString().split("T")[0] > todo.todoDueDate);
+		dueDateDiv.classList.toggle(
+			"date-overdue",
+			new Date().toISOString().split("T")[0] > todo.todoDueDate && todo.state !== "completed",
+		);
 		dueDateDiv.append(document.createTextNode(new Intl.DateTimeFormat("en-GB").format(new Date(todo.todoDueDate))));
 
 		// Adding event Listeners...
@@ -229,6 +188,58 @@ document.addEventListener("DOMContentLoaded", () => {
 		updateTodoCount();
 	};
 
+	//Todo Management Functions
+
+	const handleTodoSubmit = (id = null, mode = "add", idx = null) => {
+		const submitTodoBtn = document.querySelector(".btn-submit-todo");
+
+		let todoTitle = todoTitleInp.value;
+		let todoDesc = todoDescInp.value;
+		let todoDueDate = todoDueDateInp.value;
+		let todoState = todoStateInp.value;
+		let todoObj = {};
+
+		todoTitleInp.classList.remove("false");
+		todoDueDateInp.classList.remove("false");
+		todoTitle = todoTitle.trim();
+		if (todoTitle === null || todoTitle === "") {
+			todoTitleInp.classList.add("false");
+			return;
+		}
+		if (todoDueDate === null || todoDueDate === "") {
+			todoDueDateInp.classList.add("false");
+			return;
+		}
+		if (mode === "add") {
+			let todoId = `${todoTitle.replace(/\s/g, "").substring(0, 5)}${Date.now()}`.toString().substring(6);
+			todoObj = { todoId, todoTitle, todoDesc, todoDueDate, state: "todo" };
+		}
+
+		if (mode === "edit" && id !== null && idx !== null) {
+			todoObj = { todoId: id, todoTitle, todoDesc, todoDueDate, state: todoState };
+			handleTodoDelete(id);
+		}
+
+		todos.unshift(todoObj);
+		updateTodosLocalStorage();
+		createTodoElement(todoObj);
+		toggleModalVisibility(false);
+		submitTodoBtn.replaceWith(submitTodoBtn.cloneNode(true));
+	};
+
+	const handleTodoDelete = (id) => {
+		const idx = getTodoIndex(id);
+
+		if (idx !== -1) {
+			todos.splice(idx, 1);
+		}
+		console.log("Removing with index: ", idx, "with id: ", id);
+		if (todos.length === 0) toggleEmptyState(true);
+		document.getElementById(id).remove();
+		updateTodosLocalStorage();
+		updateTodoCount();
+	};
+
 	const handleTodoDragStart = (ev) => {
 		todoDragging = document.getElementById(ev.target.id);
 		ev.dataTransfer.effectAllowed = "move";
@@ -238,17 +249,22 @@ document.addEventListener("DOMContentLoaded", () => {
 	const handleTodoDragEnd = (ev, column) => {
 		ev.preventDefault();
 
-		if (column.dataset.state === "completed") confettiAnimation();
-		todoDragging.remove();
 		todoDragging.style.opacity = 1;
+		todoDragging.remove();
+		if (column.dataset.state === "completed" && todoDragging.dataset.state !== column.dataset.state)
+			confettiAnimation();
 		column.querySelector(".card-container").appendChild(todoDragging);
 		const idx = getTodoIndex(todoDragging.id);
 		todos[idx].state = column.dataset.state;
-		todoDragging = null;
+		todoDragging.dataset.state = column.dataset.state;
 		updateTodosLocalStorage();
 		updateTodoCount();
+		todoDragging = null;
+		return;
 		// document.querySelectorAll(".placeholder").forEach((el) => el.remove());
 	};
+
+	// Helper Functions
 
 	function rand(len) {
 		return Math.floor(Math.random() * len);
@@ -256,6 +272,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	const getTodoIndex = (todoId) => {
 		return todos.findIndex((todo) => todo.todoId === todoId);
+	};
+
+	const makePlaceHolder = () => {
+		const placeholder = document.createElement("div");
+		placeholder.classList.add("placeholder");
+		placeholder.innerHTML = `<div class="todo-header">
+									<span class="todo-title"></span>
+								</div>
+								<p class="todo-description"></p>
+								<div class="todo-due-date"></div>`;
+		return placeholder;
+	};
+
+	//UX ke liye functions
+
+	const updateTodoCount = () => {
+		todoCols.forEach((col) => {
+			let count = col.querySelectorAll(".todo-card").length;
+			col.querySelector(".todo-count").textContent = count;
+		});
+	};
+
+	const toggleEmptyState = (bool) => {
+		if (bool) {
+			document.querySelector(".empty-title").textContent = emptyMessages[rand(emptyMessages.length)];
+		}
+		document.querySelector(".something").classList = bool ? "something hide" : "something";
+		document.querySelector(".empty-todo").classList = bool ? "empty-todo flex" : "empty-todo hide";
 	};
 
 	const confettiAnimation = () => {
@@ -275,49 +319,6 @@ document.addEventListener("DOMContentLoaded", () => {
 		}, 250);
 	};
 
-	const updateTodoCount = () => {
-		todoCols.forEach((col) => {
-			let count = col.querySelectorAll(".todo-card").length;
-			col.querySelector(".todo-count").textContent = count;
-		});
-	};
-
-	const applyTheme = (theme) => {
-		if (!document.startViewTransition) {
-			document.documentElement.setAttribute("data-theme", theme);
-			localStorage.setItem("theme", theme);
-			return;
-		}
-		document.startViewTransition(() => {
-			document.documentElement.setAttribute("data-theme", theme);
-			localStorage.setItem("theme", theme);
-		});
-	};
-
-	const getTheme = () => {
-		const savedTheme = localStorage.getItem("theme");
-		if (savedTheme) return savedTheme;
-		return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-	};
-
-	const toggleEmptyState = (bool) => {
-		if (bool) {
-			document.querySelector(".empty-title").textContent = emptyMessages[rand(emptyMessages.length)];
-		}
-		document.querySelector(".something").classList = bool ? "something hide" : "something";
-		document.querySelector(".empty-todo").classList = bool ? "empty-todo flex" : "empty-todo hide";
-	};
-
-	const makePlaceHolder = () => {
-		const placeholder = document.createElement("div");
-		placeholder.classList.add("placeholder");
-		placeholder.innerHTML = `<div class="todo-header">
-									<span class="todo-title"></span>
-								</div>
-								<p class="todo-description"></p>
-								<div class="todo-due-date"></div>`;
-		return placeholder;
-	};
 	// Adding Event Listeners
 	addNewTodoBtn.forEach((btn) => {
 		btn.addEventListener("click", () => {
@@ -345,6 +346,9 @@ document.addEventListener("DOMContentLoaded", () => {
 			handleTodoDragEnd(ev, col);
 		});
 	});
+
+	// Theme ke management ke liye functions
+
 	themeToggle.addEventListener("click", () => {
 		const currentTheme = document.documentElement.getAttribute("data-theme") || getTheme();
 		const newTheme = currentTheme === "dark" ? "light" : "dark";
@@ -356,6 +360,27 @@ document.addEventListener("DOMContentLoaded", () => {
 					/>`;
 		applyTheme(newTheme);
 	});
+
+	const applyTheme = (theme) => {
+		if (!document.startViewTransition) {
+			document.documentElement.setAttribute("data-theme", theme);
+			localStorage.setItem("theme", theme);
+			return;
+		}
+		document.startViewTransition(() => {
+			document.documentElement.setAttribute("data-theme", theme);
+			localStorage.setItem("theme", theme);
+		});
+	};
+
+	const getTheme = () => {
+		const savedTheme = localStorage.getItem("theme");
+		if (savedTheme) return savedTheme;
+		return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+	};
+
+	//Ye apne aap run hoga jab page/script load hogi
+
 	(() => {
 		readTodosLocalStorage();
 		applyTheme(document.documentElement.getAttribute("data-theme") || getTheme());
