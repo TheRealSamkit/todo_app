@@ -24,7 +24,7 @@ A simple Kanban-style todo board that runs entirely in the browser.
 
 ## Future Todos
 
-- Add a dark theme toggle
+- Add a dark theme toggle [Done]
 - Improve responsive layout
 - UX tweaks
 - Export todos as JSON

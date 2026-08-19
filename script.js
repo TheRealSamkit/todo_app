@@ -1,7 +1,7 @@
-let todos = [];
+let todos = null;
 document.addEventListener("DOMContentLoaded", () => {
 	let todoDragging = null;
-	const addNewTodoBtn = document.querySelector(".add-todo-btn");
+	const addNewTodoBtn = document.querySelectorAll(".add-todo-btn");
 	const todoModal = document.querySelector(".modal");
 	const closeModalBtn = document.querySelectorAll(".btn-cancel-todo");
 
@@ -67,13 +67,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
 			return;
 		}
-		submitTodoBtn.addEventListener(
-			"click",
-			() => {
-				handleTodoSubmit((mode = "add"));
-			},
-			{ once: true },
-		);
+		submitTodoBtn.addEventListener("click", () => {
+			handleTodoSubmit((mode = "add"));
+		});
 	};
 
 	const handleTodoSubmit = (id = null, mode = "add", idx = null) => {
@@ -82,6 +78,9 @@ document.addEventListener("DOMContentLoaded", () => {
 		let todoDueDate = todoDueDateInp.value;
 		let todoState = todoStateInp.value;
 		let todoObj = {};
+
+		todoTitleInp.classList.remove("false");
+		todoDueDateInp.classList.remove("false");
 		if (todoTitle === null || todoTitle === "") {
 			todoTitleInp.classList.add("false");
 			return;
@@ -90,8 +89,6 @@ document.addEventListener("DOMContentLoaded", () => {
 			todoDueDateInp.classList.add("false");
 			return;
 		}
-		todoTitleInp.classList.remove("false");
-		todoDueDateInp.classList.remove("false");
 		if (mode === "add") {
 			todoId = `${todoTitle.replace(/\s/g, "").substring(0, 5)}${Date.now()}`.toString().substring(0, 12);
 			todoObj = { todoId, todoTitle, todoDesc, todoDueDate, state: "todo" };
@@ -102,10 +99,11 @@ document.addEventListener("DOMContentLoaded", () => {
 			handleTodoDelete(id);
 		}
 
-		createTodoElement(todoObj);
 		todos.unshift(todoObj);
 		updateTodosLocalStorage();
+		createTodoElement(todoObj);
 		toggleModalVisibility(false);
+		document.querySelector(".btn-submit-todo").removeEventListener("click", () => handleTodoSubmit((mode = "add")));
 	};
 
 	const handleTodoDelete = (id) => {
@@ -115,7 +113,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			todos.splice(idx, 1);
 		}
 		console.log("Removing with index: ", idx, "with id: ", id);
-
+		if (todos.length === 0) toggleEmptyState(true);
 		document.getElementById(id).remove();
 		updateTodosLocalStorage();
 		updateTodoCount();
@@ -129,7 +127,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	const readTodosLocalStorage = () => {
 		if (localStorage.getItem("todos") === null) return;
 		todos = JSON.parse(localStorage.getItem("todos"));
-		console.table(todos);
+		return;
 	};
 	const createTodoElement = (todo) => {
 		const todoItemsContainer = document.querySelector(".todo-container");
@@ -206,6 +204,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			handleTodoDragStart(event);
 		});
 		parent.appendChild(todoDiv);
+		toggleEmptyState(false);
 		updateTodoCount();
 	};
 	const handleTodoDragStart = (ev) => {
@@ -223,7 +222,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		const idx = getTodoIndex(todoDragging.id);
 		todos[idx].state = column.dataset.state;
 		// document.querySelectorAll(".placeholder").forEach((el) => el.remove());
-		// todoDragging = null;
+		todoDragging = null;
 		updateTodosLocalStorage();
 		updateTodoCount();
 	};
@@ -257,6 +256,11 @@ document.addEventListener("DOMContentLoaded", () => {
 		return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 	};
 
+	const toggleEmptyState = (bool) => {
+		document.querySelector(".something").classList = bool ? "something hide" : "something";
+		document.querySelector(".empty-todo").classList = bool ? "empty-todo flex" : "empty-todo hide";
+	};
+
 	const makePlaceHolder = () => {
 		const placeholder = document.createElement("div");
 		placeholder.classList.add("placeholder");
@@ -267,10 +271,11 @@ document.addEventListener("DOMContentLoaded", () => {
 								<div class="todo-due-date"></div>`;
 		return placeholder;
 	};
-
-	// Adding EventListeners
-	addNewTodoBtn.addEventListener("click", () => {
-		toggleModalVisibility(true);
+	// Adding Event Listeners
+	addNewTodoBtn.forEach((btn) => {
+		btn.addEventListener("click", () => {
+			toggleModalVisibility(true);
+		});
 	});
 	closeModalBtn.forEach((btn) => {
 		btn.addEventListener("click", () => {
@@ -307,7 +312,10 @@ document.addEventListener("DOMContentLoaded", () => {
 	(() => {
 		readTodosLocalStorage();
 		applyTheme(document.documentElement.getAttribute("data-theme") || getTheme());
-		if (todos === undefined) return;
+		if (todos === undefined || todos.length === 0) {
+			toggleEmptyState(true);
+			return;
+		}
 		todos.forEach((todo) => createTodoElement(todo));
 	})();
 });
