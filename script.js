@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	let todoDragging = null;
 
 	//Initializations...?
-
+	
 	const addNewTodoBtn = document.querySelectorAll(".add-todo-btn");
 	const todoModal = document.querySelector(".modal");
 	const closeModalBtn = document.querySelectorAll(".btn-cancel-todo");

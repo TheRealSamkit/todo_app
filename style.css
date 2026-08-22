@@ -30,7 +30,7 @@
 
 	--bg-body: var(--gray-900);
 	--color-body: var(--gray-100);
-	--border-color: #515151a3;
+	--border-color: #1c1a1aa3;
 	--border-radius: 8px;
 
 	--modal-overlay-bg: #171717c7;
@@ -282,6 +282,7 @@ main section {
 	margin: var(--size);
 	padding: var(--size);
 	line-height: var(--line-height-btn);
+	outline-color: rgb(from var(--btn-bg-color) r g b / 0.5);
 
 	cursor: pointer;
 	transition: all 0.2s;
@@ -343,7 +344,15 @@ main section {
 	justify-content: end !important;
 }
 
-input,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+	border-color: rgb(from var(--primary) r g b / 0.5) !important;
+	outline: 5px solid rgb(from var(--primary) r g b / 0.1) !important;
+}
+
+input[type="text"],
+input[type="date"],
 textarea,
 select {
 	all: unset;
@@ -353,14 +362,8 @@ select {
 	background-color: var(--bg-body);
 	color: var(--color-body);
 	padding: var(--size);
-	border: 1px solid var(--border-color);
 	border-radius: var(--border-radius);
-}
-
-input:focus-visible,
-textarea:focus-visible,
-select:focus-visible {
-	outline: 2px solid var(--gray-500);
+	border: 1px solid var(--border-color);
 }
 
 .input-group {
@@ -369,7 +372,8 @@ select:focus-visible {
 	justify-content: space-between;
 	flex-grow: 1;
 }
-.input-group label {
+.input-group label,
+.input-group p {
 	margin-top: var(--size);
 }
 
@@ -377,6 +381,88 @@ select:focus-visible {
 	outline: 2px solid var(--danger);
 	animation: shake 0.5s ease-out;
 }
+
+input[type="radio"] {
+	all: unset;
+	position: absolute;
+	top: 1px;
+	width: 0;
+	height: 0;
+}
+
+input[type="radio"]:focus-visible {
+	outline: 0 !important;
+	border: 0 !important;
+}
+
+.todo-priority {
+	position: relative;
+	justify-content: space-between;
+	border: 1px solid var(--border-color);
+	background-color: var(--gray-700);
+
+	margin-top: var(--size);
+	width: 73.2%;
+	border-radius: var(--border-radius);
+
+	label {
+		position: relative;
+		background-color: var(--bg-body);
+		cursor: pointer;
+		border-radius: var(--border-radius);
+		outline-color: var(--primary);
+
+		margin-top: 0;
+		letter-spacing: 0.9px;
+		font-size: 14px;
+		padding: var(--size) calc(var(--size));
+
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 5px;
+
+		transition: all 250ms ease-in;
+
+		span {
+			all: unset;
+			font-size: 0;
+			padding: 4px;
+			border-radius: 50%;
+			border: 0.5px solid var(--white);
+		}
+
+		svg {
+			display: none;
+		}
+	}
+}
+
+input[type="radio"]:focus-visible + label::before {
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 100%;
+	width: 100%;
+	background-color: rebeccapurple;
+	z-index: 1000000;
+}
+
+input[type="radio"]:checked + label {
+	padding: var(--size) calc(var(--size));
+	outline: 3px solid rgb(from var(--primary) r g b / 0.5);
+	border-radius: var(--border-radius);
+	svg {
+		display: inline-block;
+	}
+}
+
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+	outline: 2px solid var(--gray-500);
+}
+
 @keyframes shake {
 	0% {
 		transform: translateX(0);

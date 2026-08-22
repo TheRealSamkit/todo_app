@@ -52,12 +52,17 @@
 		</main>
 
 		<div class="empty-todo hide">
-			<img src="assets/empty_todo.svg" alt="emptyState image for todo" class="empty-todo-img" />
+			<img
+				src="assets/empty_todo.svg"
+				alt="emptyState image for todo"
+				class="empty-todo-img"
+				fetchpriority="high"
+			/>
 			<h2 class="empty-title">Your to-do list is empty</h2>
 			<p>Add tasks to keep track of your work.</p>
 			<button class="btn btn-primary add-todo-btn">Add Task</button>
 		</div>
-		<div class="modal hide">
+		<div class="modal flex">
 			<div class="modal-body">
 				<h3 class="modal-title flex">
 					<span class="form-action">Add New Todo</span>
@@ -79,10 +84,62 @@
 
 					<div class="input-group flex">
 						<label for="todoDueDate">Due Date:</label>
-						<input type="date" name="DueDate" id="todoDueDate" />
+						<input type="date" name="DueDate" id="todoDueDate" style="text-transform: uppercase" />
 					</div>
 					<div class="input-group flex">
-						<label for="todoState">State:</label>
+						<p>Priority:</p>
+						<div class="todo-priority flex">
+							<input type="radio" name="Priority" id="lowPriority" value="Low" />
+							<label for="lowPriority"
+								><span style="background-color: #2ecc71"></span>
+								Low
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									viewBox="0 0 448 512"
+									fill="currentColor"
+									width="10px"
+								>
+									<path
+										d="M434.8 70.1c14.3 10.4 17.5 30.4 7.1 44.7l-256 352c-5.5 7.6-14 12.3-23.4 13.1s-18.5-2.7-25.1-9.3l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l101.5 101.5 234-321.7c10.4-14.3 30.4-17.5 44.7-7.1z"
+									/>
+								</svg>
+							</label>
+
+							<input type="radio" name="Priority" id="mediumPriority" value="Medium" />
+							<label for="mediumPriority"
+								><span style="background-color: #e8c61b"></span>
+								Medium
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									viewBox="0 0 448 512"
+									fill="currentColor"
+									width="10px"
+								>
+									<path
+										d="M434.8 70.1c14.3 10.4 17.5 30.4 7.1 44.7l-256 352c-5.5 7.6-14 12.3-23.4 13.1s-18.5-2.7-25.1-9.3l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l101.5 101.5 234-321.7c10.4-14.3 30.4-17.5 44.7-7.1z"
+									/>
+								</svg>
+							</label>
+
+							<input type="radio" name="Priority" id="highPriority" value="High" />
+							<label for="highPriority"
+								><span style="background-color: rgb(255, 63, 30)"></span>
+								High
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									viewBox="0 0 448 512"
+									fill="currentColor"
+									width="10px"
+								>
+									<path
+										d="M434.8 70.1c14.3 10.4 17.5 30.4 7.1 44.7l-256 352c-5.5 7.6-14 12.3-23.4 13.1s-18.5-2.7-25.1-9.3l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l101.5 101.5 234-321.7c10.4-14.3 30.4-17.5 44.7-7.1z"
+									/>
+								</svg>
+							</label>
+						</div>
+					</div>
+					<div class="input-group flex">
+						<label for="todoState">Stage:</label>
 						<select name="State" id="todoState">
 							<option value="todo">Todo</option>
 							<option value="inProgress">In Progress</option>
