@@ -62,7 +62,7 @@
 			<p>Add tasks to keep track of your work.</p>
 			<button class="btn btn-primary add-todo-btn">Add Task</button>
 		</div>
-		<div class="modal flex">
+		<div class="modal hide">
 			<div class="modal-body">
 				<h3 class="modal-title flex">
 					<span class="form-action">Add New Todo</span>
@@ -89,9 +89,9 @@
 					<div class="input-group flex">
 						<p>Priority:</p>
 						<div class="todo-priority flex">
-							<input type="radio" name="Priority" id="lowPriority" value="Low" />
+							<input type="radio" name="Priority" id="lowPriority" value="low" checked />
 							<label for="lowPriority"
-								><span style="background-color: #2ecc71"></span>
+								><span style="background-color: #00f318"></span>
 								Low
 								<svg
 									xmlns="http://www.w3.org/2000/svg"
@@ -105,7 +105,7 @@
 								</svg>
 							</label>
 
-							<input type="radio" name="Priority" id="mediumPriority" value="Medium" />
+							<input type="radio" name="Priority" id="mediumPriority" value="medium" />
 							<label for="mediumPriority"
 								><span style="background-color: #e8c61b"></span>
 								Medium
@@ -121,9 +121,9 @@
 								</svg>
 							</label>
 
-							<input type="radio" name="Priority" id="highPriority" value="High" />
+							<input type="radio" name="Priority" id="highPriority" value="high" />
 							<label for="highPriority"
-								><span style="background-color: rgb(255, 63, 30)"></span>
+								><span style="background-color: #ff3f1e"></span>
 								High
 								<svg
 									xmlns="http://www.w3.org/2000/svg"

@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	let todoDragging = null;
 
 	//Initializations...?
-	
+
 	const addNewTodoBtn = document.querySelectorAll(".add-todo-btn");
 	const todoModal = document.querySelector(".modal");
 	const closeModalBtn = document.querySelectorAll(".btn-cancel-todo");
@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	const todoStateInp = document.querySelector("#todoState");
 	const todoCols = document.querySelectorAll(".todoCol");
 	const themeToggle = document.querySelector(".theme-toggle");
+	const radioGroup = document.querySelectorAll("input[name='Priority']");
 
 	const emptyMessages = [
 		"Your to-do list is empty. Suspicious.",
@@ -27,7 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	// functions
 	const toggleModalVisibility = (bool, mode = "open", id = null) => {
 		const submitTodoBtn = document.querySelector(".btn-submit-todo");
-		let modalTitle = document.querySelector(".form-action");
+		const modalTitle = document.querySelector(".form-action");
 		if (bool) {
 			todoModal.classList.remove("hide");
 			todoStateInp.parentNode.classList.add("hide");
@@ -37,6 +38,9 @@ document.addEventListener("DOMContentLoaded", () => {
 			todoDescInp.value = "";
 			todoDueDateInp.value = "";
 			todoStateInp.value = "todo";
+			radioGroup.forEach((radio) => {
+				radio.checked = radio.value === "low" ? true : false;
+			});
 
 			todoTitleInp.focus();
 			modalTitle.textContent = "Add New Task";
@@ -72,6 +76,9 @@ document.addEventListener("DOMContentLoaded", () => {
 			todoDescInp.value = todoData.todoDesc;
 			todoDueDateInp.value = todoData.todoDueDate;
 			todoStateInp.value = todoData.state;
+			radioGroup.forEach((radio) => {
+				radio.checked = radio.value === todoData.todoPriority;
+			});
 
 			submitTodoBtn.addEventListener(
 				"click",
@@ -109,7 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
 				: todo.state === "inProgress"
 					? inProgressItemsContainer
 					: completedItemsContainer;
-		let todoDiv = Object.assign(document.createElement("div"), {
+		const todoDiv = Object.assign(document.createElement("div"), {
 			className: "todo-card flex",
 			id: todo.todoId,
 			draggable: false,
@@ -149,6 +156,8 @@ document.addEventListener("DOMContentLoaded", () => {
 						<div class="todo-due-date">Due: </div>`,
 		});
 		todoDiv.dataset.state = todo.state;
+
+		todoDiv.classList.add(`priority-${todo.todoPriority ?? "low"}`);
 
 		titleSpan = todoDiv.querySelector(".todo-title");
 		titleSpan.textContent = todo.todoTitle;
@@ -197,8 +206,9 @@ document.addEventListener("DOMContentLoaded", () => {
 		let todoDesc = todoDescInp.value;
 		let todoDueDate = todoDueDateInp.value;
 		let todoState = todoStateInp.value;
+		let priority = document.querySelector("input[name='Priority']:checked").value;
 		let todoObj = {};
-
+		console.log(priority);
 		todoTitleInp.classList.remove("false");
 		todoDueDateInp.classList.remove("false");
 		todoTitle = todoTitle.trim();
@@ -212,11 +222,18 @@ document.addEventListener("DOMContentLoaded", () => {
 		}
 		if (mode === "add") {
 			let todoId = `${todoTitle.replace(/\s/g, "").substring(0, 5)}${Date.now()}`.toString().substring(6);
-			todoObj = { todoId, todoTitle, todoDesc, todoDueDate, state: "todo" };
+			todoObj = { todoId, todoTitle, todoDesc, todoDueDate, todoPriority: priority ?? "low", state: "todo" };
 		}
 
 		if (mode === "edit" && id !== null && idx !== null) {
-			todoObj = { todoId: id, todoTitle, todoDesc, todoDueDate, state: todoState };
+			todoObj = {
+				todoId: id,
+				todoTitle,
+				todoDesc,
+				todoDueDate,
+				todoPriority: priority ?? "low",
+				state: todoState,
+			};
 			handleTodoDelete(id);
 		}
 

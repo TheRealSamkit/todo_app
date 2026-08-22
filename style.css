@@ -2,7 +2,7 @@
 	margin: 0;
 	padding: 0;
 	box-sizing: border-box;
-	font-family: Verdana, Geneva, Tahoma, sans-serif;
+	font-family: Verdana !important;
 }
 
 :root {
@@ -30,7 +30,7 @@
 
 	--bg-body: var(--gray-900);
 	--color-body: var(--gray-100);
-	--border-color: #1c1a1aa3;
+	--border-color: #4e4e4ea3;
 	--border-radius: 8px;
 
 	--modal-overlay-bg: #171717c7;
@@ -164,12 +164,27 @@ main section {
 .placeholder {
 	margin: calc(var(--size) * 2);
 	padding: calc(var(--size) * 2);
-	align-items: start;
 	gap: calc(var(--size));
+	align-items: start;
 	flex-direction: column;
 	background-color: var(--gray-900);
 	border-radius: var(--border-radius);
+	border-top-left-radius: 0;
+	border-bottom-left-radius: 0;
 	touch-action: none;
+	border: 5px solid transparent;
+}
+
+.priority-low {
+	border-left-color: #00f318;
+}
+
+.priority-medium {
+	border-left-color: #e8c61b;
+}
+
+.priority-high {
+	border-left-color: #ff3f1e;
 }
 
 .todo-header {
@@ -395,8 +410,12 @@ input[type="radio"]:focus-visible {
 	border: 0 !important;
 }
 
+.todo-priority:focus-within {
+	border-color: rgb(from var(--primary) r g b / 0.5) !important;
+	outline: 5px solid rgb(from var(--primary) r g b / 0.1) !important;
+}
+
 .todo-priority {
-	position: relative;
 	justify-content: space-between;
 	border: 1px solid var(--border-color);
 	background-color: var(--gray-700);
@@ -406,7 +425,6 @@ input[type="radio"]:focus-visible {
 	border-radius: var(--border-radius);
 
 	label {
-		position: relative;
 		background-color: var(--bg-body);
 		cursor: pointer;
 		border-radius: var(--border-radius);
@@ -415,7 +433,7 @@ input[type="radio"]:focus-visible {
 		margin-top: 0;
 		letter-spacing: 0.9px;
 		font-size: 14px;
-		padding: var(--size) calc(var(--size));
+		padding: var(--size) calc(var(--size) * 2);
 
 		display: flex;
 		align-items: center;
@@ -438,29 +456,13 @@ input[type="radio"]:focus-visible {
 	}
 }
 
-input[type="radio"]:focus-visible + label::before {
-	position: absolute;
-	top: 0;
-	left: 0;
-	height: 100%;
-	width: 100%;
-	background-color: rebeccapurple;
-	z-index: 1000000;
-}
-
 input[type="radio"]:checked + label {
-	padding: var(--size) calc(var(--size));
+	padding: var(--size) calc(var(--size) * 1.5);
 	outline: 3px solid rgb(from var(--primary) r g b / 0.5);
 	border-radius: var(--border-radius);
 	svg {
 		display: inline-block;
 	}
-}
-
-input:focus-visible,
-textarea:focus-visible,
-select:focus-visible {
-	outline: 2px solid var(--gray-500);
 }
 
 @keyframes shake {
