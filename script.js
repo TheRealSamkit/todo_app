@@ -169,13 +169,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
 		todoDiv.classList.add(`priority-${todo.todoPriority ?? "low"}`);
 
-		titleSpan = todoDiv.querySelector(".todo-title");
+		let titleSpan = todoDiv.querySelector(".todo-title");
 		titleSpan.textContent = todo.todoTitle;
 		titleSpan.classList.toggle("auto-scroll", todo.todoTitle.length >= 30);
 
 		todoDiv.querySelector(".todo-description").textContent = todo.todoDesc;
 
-		dueDateDiv = todoDiv.querySelector(".todo-due-date");
+		let dueDateDiv = todoDiv.querySelector(".todo-due-date");
 		dueDateDiv.classList.toggle(
 			"date-overdue",
 			new Date().toISOString().split("T")[0] > todo.todoDueDate && todo.state !== "completed",
