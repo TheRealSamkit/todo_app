@@ -430,10 +430,12 @@ input[type="radio"]:focus-visible {
 	.vehicle {
 		position: absolute;
 		z-index: -1;
+		left: 0;
 		animation: move-animation 5s linear infinite;
 	}
 
 	label {
+		--size: 6px;
 		background-color: var(--bg-body);
 		cursor: pointer;
 		border-radius: var(--border-radius);
@@ -441,7 +443,7 @@ input[type="radio"]:focus-visible {
 
 		margin-top: 0;
 		letter-spacing: 0.9px;
-		font-size: 14px;
+		font-size: 0.8rem;
 		padding: var(--size) calc(var(--size) * 2);
 
 		display: flex;
@@ -473,18 +475,17 @@ input[type="radio"]:checked + label {
 		display: inline-block;
 	}
 }
-
 @keyframes move-animation {
 	0% {
-		transform: translateX(0%);
+		left: 0%;
 		stroke: #00f318;
 	}
 	50% {
 		stroke: #e8c61b;
 	}
 	100% {
+		left: calc(100% - var(--vehicle-width, 24px));
 		stroke: var(--danger);
-		transform: translateX(300px);
 	}
 }
 
