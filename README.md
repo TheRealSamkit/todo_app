@@ -29,7 +29,7 @@ A simple Kanban-style todo board that runs entirely in the browser.
 - UX tweaks [Done]
 - Show placeholder and empty states [Done]
 - Sound Effects
-- Priority System
+- Priority System [Done]
 - Keyboard Shortcuts
 - Export todos as JSON
 - Filtering/ Sorting

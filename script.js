@@ -1,7 +1,9 @@
 let todos = [];
+import { vechicles } from "./assets/constants.js";
+
 document.addEventListener("DOMContentLoaded", () => {
 	let todoDragging = null;
-
+	const wheels = Object.values(vechicles);
 	//Initializations...?
 
 	const addNewTodoBtn = document.querySelectorAll(".add-todo-btn");
@@ -15,6 +17,8 @@ document.addEventListener("DOMContentLoaded", () => {
 	const todoCols = document.querySelectorAll(".todoCol");
 	const themeToggle = document.querySelector(".theme-toggle");
 	const radioGroup = document.querySelectorAll("input[name='Priority']");
+	const delRegion = document.querySelector(".delete-region");
+	const svgVechicle = document.querySelector(".vehicle");
 
 	const emptyMessages = [
 		"Your to-do list is empty. Suspicious.",
@@ -25,10 +29,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	let isMobile = false;
 
+	console.log(todoCols);
+
 	// functions
 	const toggleModalVisibility = (bool, mode = "open", id = null) => {
 		const submitTodoBtn = document.querySelector(".btn-submit-todo");
 		const modalTitle = document.querySelector(".form-action");
+
 		if (bool) {
 			todoModal.classList.remove("hide");
 			todoStateInp.parentNode.classList.add("hide");
@@ -42,9 +49,11 @@ document.addEventListener("DOMContentLoaded", () => {
 				radio.checked = radio.value === "low" ? true : false;
 			});
 
-			todoTitleInp.focus();
+			svgVechicle.innerHTML = wheels[rand(wheels.length)];
+
 			modalTitle.textContent = "Add New Task";
 			submitTodoBtn.textContent = "Add Task";
+			todoTitleInp.focus();
 
 			todoModal.addEventListener(
 				"click",
@@ -79,6 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			radioGroup.forEach((radio) => {
 				radio.checked = radio.value === todoData.todoPriority;
 			});
+			svgVechicle.innerHTML = wheels[rand(wheels.length)];
 
 			submitTodoBtn.addEventListener(
 				"click",
@@ -208,7 +218,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		let todoState = todoStateInp.value;
 		let priority = document.querySelector("input[name='Priority']:checked").value;
 		let todoObj = {};
-		console.log(priority);
+
 		todoTitleInp.classList.remove("false");
 		todoDueDateInp.classList.remove("false");
 		todoTitle = todoTitle.trim();
@@ -261,9 +271,11 @@ document.addEventListener("DOMContentLoaded", () => {
 		todoDragging = document.getElementById(ev.target.id);
 		ev.dataTransfer.effectAllowed = "move";
 		ev.dataTransfer.setData("task", "");
+
+		delRegion.classList.toggle("hide");
 	};
 
-	const handleTodoDragEnd = (ev, column) => {
+	const handleTodoDrop = (ev, column) => {
 		ev.preventDefault();
 
 		todoDragging.style.opacity = 1;
@@ -274,6 +286,8 @@ document.addEventListener("DOMContentLoaded", () => {
 		const idx = getTodoIndex(todoDragging.id);
 		todos[idx].state = column.dataset.state;
 		todoDragging.dataset.state = column.dataset.state;
+		delRegion.classList.toggle("hide");
+
 		updateTodosLocalStorage();
 		updateTodoCount();
 		todoDragging = null;
@@ -360,8 +374,27 @@ document.addEventListener("DOMContentLoaded", () => {
 			// cardContainer.appendChild(makePlaceHolder());
 		});
 		col.addEventListener("drop", (ev) => {
-			handleTodoDragEnd(ev, col);
+			handleTodoDrop(ev, col);
 		});
+	});
+	// Listeners for delete region
+
+	delRegion.addEventListener("dragenter", () => {
+		delRegion.classList.toggle("delete-region-active");
+	});
+
+	delRegion.addEventListener("dragleave", () => {
+		delRegion.classList.toggle("delete-region-active");
+	});
+
+	delRegion.addEventListener("dragover", (ev) => {
+		ev.preventDefault();
+	});
+
+	delRegion.addEventListener("drop", () => {
+		handleTodoDelete(todoDragging.id);
+		todoDragging = null;
+		delRegion.classList.toggle("hide");
 	});
 
 	// Theme ke management ke liye functions
