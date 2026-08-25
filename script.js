@@ -272,7 +272,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		ev.dataTransfer.effectAllowed = "move";
 		ev.dataTransfer.setData("task", "");
 
-		delRegion.classList.toggle("hide");
+		delRegion.classList.remove("hide");
 	};
 
 	const handleTodoDrop = (ev, column) => {
@@ -286,7 +286,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		const idx = getTodoIndex(todoDragging.id);
 		todos[idx].state = column.dataset.state;
 		todoDragging.dataset.state = column.dataset.state;
-		delRegion.classList.toggle("hide");
+		delRegion.classList.add("hide");
 
 		updateTodosLocalStorage();
 		updateTodoCount();
@@ -394,7 +394,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	delRegion.addEventListener("drop", () => {
 		handleTodoDelete(todoDragging.id);
 		todoDragging = null;
-		delRegion.classList.toggle("hide");
+		delRegion.classList.add("hide");
 	});
 
 	// Theme ke management ke liye functions

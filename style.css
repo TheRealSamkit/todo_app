@@ -440,6 +440,7 @@ input[type="radio"]:focus-visible {
 		cursor: pointer;
 		border-radius: var(--border-radius);
 		outline-color: var(--primary);
+		border: 1px solid var(--border-color);
 
 		margin-top: 0;
 		letter-spacing: 0.9px;
