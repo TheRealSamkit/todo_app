@@ -3,11 +3,12 @@ import { vechicles } from "./assets/constants.js";
 
 document.addEventListener("DOMContentLoaded", () => {
 	let todoDragging = null;
+	let modalOpen = true;
 	const wheels = Object.values(vechicles);
 	//Initializations...?
 
 	const addNewTodoBtn = document.querySelectorAll(".add-todo-btn");
-	const todoModal = document.querySelector(".modal");
+	const todoModal = document.querySelector("#addEditTodoModal");
 	const closeModalBtn = document.querySelectorAll(".btn-cancel-todo");
 
 	const todoTitleInp = document.querySelector("#todoTitle");
@@ -32,34 +33,38 @@ document.addEventListener("DOMContentLoaded", () => {
 	console.log(todoCols);
 
 	// functions
-	const toggleModalVisibility = (bool, mode = "open", id = null) => {
+	const toggleTodoModal = (bool, mode = "open", id = null) => {
 		const submitTodoBtn = document.querySelector(".btn-submit-todo");
 		const modalTitle = document.querySelector(".form-action");
 
 		if (bool) {
+			todoModal.dataset.modalOpen = true;
+
 			todoModal.classList.remove("hide");
 			todoStateInp.parentNode.classList.add("hide");
 			todoModal.classList.add("flex");
 
-			todoTitleInp.value = "";
-			todoDescInp.value = "";
-			todoDueDateInp.value = "";
-			todoStateInp.value = "todo";
-			radioGroup.forEach((radio) => {
-				radio.checked = radio.value === "low" ? true : false;
-			});
+			if (mode === "open") {
+				todoTitleInp.value = "";
+				todoDescInp.value = "";
+				todoDueDateInp.value = "";
+				todoStateInp.value = "todo";
+				radioGroup.forEach((radio) => {
+					radio.checked = radio.value === "low" ? true : false;
+				});
+			}
 
 			svgVechicle.innerHTML = wheels[rand(wheels.length)];
 
 			modalTitle.textContent = "Add New Task";
-			submitTodoBtn.textContent = "Add Task";
+			submitTodoBtn.textContent = mode === "open" ? "Add Task" : "Update Task";
 			todoTitleInp.focus();
 
 			todoModal.addEventListener(
 				"click",
 				(ev) => {
 					if (ev.target === todoModal) {
-						toggleModalVisibility(false);
+						toggleTodoModal(false);
 					}
 				},
 				{ once: true },
@@ -68,6 +73,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			todoModal.classList.add("hide");
 			todoModal.classList.remove("flex");
 			submitTodoBtn.replaceWith(submitTodoBtn.cloneNode(true));
+			todoModal.dataset.modalOpen = false;
 			return;
 		}
 
@@ -76,10 +82,8 @@ document.addEventListener("DOMContentLoaded", () => {
 			const idx = getTodoIndex(id);
 			let todoData = todos[idx];
 
-			todoTitleInp.focus();
 			modalTitle.textContent =
 				"Edit " + todoData.todoTitle.substring(0, 16) + `${todoData.todoTitle.length >= 16 ? "..." : ""}`;
-			submitTodoBtn.textContent = "Update Task";
 
 			todoTitleInp.value = todoData.todoTitle;
 			todoDescInp.value = todoData.todoDesc;
@@ -88,7 +92,6 @@ document.addEventListener("DOMContentLoaded", () => {
 			radioGroup.forEach((radio) => {
 				radio.checked = radio.value === todoData.todoPriority;
 			});
-			svgVechicle.innerHTML = wheels[rand(wheels.length)];
 
 			submitTodoBtn.addEventListener(
 				"click",
@@ -187,7 +190,8 @@ document.addEventListener("DOMContentLoaded", () => {
 			handleTodoDelete(todo.todoId);
 		});
 		todoDiv.querySelector(".btn-edit").addEventListener("click", () => {
-			toggleModalVisibility(true, "edit", todo.todoId);
+			console.log("here");
+			toggleTodoModal(true, "edit", todo.todoId);
 		});
 		todoDiv.querySelector(".drag-btn").addEventListener("mousedown", () => {
 			todoDiv.draggable = true;
@@ -250,7 +254,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		todos.unshift(todoObj);
 		updateTodosLocalStorage();
 		createTodoElement(todoObj);
-		toggleModalVisibility(false);
+		toggleTodoModal(false);
 		submitTodoBtn.replaceWith(submitTodoBtn.cloneNode(true));
 	};
 
@@ -353,12 +357,12 @@ document.addEventListener("DOMContentLoaded", () => {
 	// Adding Event Listeners
 	addNewTodoBtn.forEach((btn) => {
 		btn.addEventListener("click", () => {
-			toggleModalVisibility(true);
+			toggleTodoModal(true);
 		});
 	});
 	closeModalBtn.forEach((btn) => {
 		btn.addEventListener("click", () => {
-			toggleModalVisibility(false);
+			toggleTodoModal(false);
 		});
 	});
 	todoCols.forEach((col) => {
@@ -395,6 +399,27 @@ document.addEventListener("DOMContentLoaded", () => {
 		handleTodoDelete(todoDragging.id);
 		todoDragging = null;
 		delRegion.classList.add("hide");
+	});
+
+	document.addEventListener("keyup", (evt) => {
+		if (evt.key === "Escape") {
+			let modal = document.querySelector(`.modal[data-modal-open="true"]`);
+
+			if (!modal) return;
+
+			if (modal.dataset.modalName === "addEditTodoModal") {
+				toggleTodoModal(false);
+			}
+		}
+
+		const activeElem = document.activeElement;
+		const isEditing =
+			activeElem.tagName === "INPUT" || activeElem.tagName === "TEXTAREA" || activeElem.isContentEditable;
+		if (isEditing) return;
+		if (evt.key.toLowerCase() === "n") {
+			if (todoModal.dataset.modalOpen === "true") return;
+			toggleTodoModal(true);
+		}
 	});
 
 	// Theme ke management ke liye functions

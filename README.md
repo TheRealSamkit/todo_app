@@ -30,6 +30,7 @@ A simple Kanban-style todo board that runs entirely in the browser.
 - Show placeholder and empty states [Done]
 - Sound Effects
 - Priority System [Done]
-- Keyboard Shortcuts
+- Keyboard Shortcuts [Done]
 - Export todos as JSON
 - Filtering/ Sorting
+- Settings

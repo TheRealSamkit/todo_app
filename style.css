@@ -580,6 +580,7 @@ input[type="radio"]:checked + label {
 	background-color: rgb(from var(--black) r g b / 0.5);
 	bottom: 0;
 	right: 0;
+	z-index: 2000;
 	height: 10em;
 	width: 10em;
 	border-top-left-radius: 100%;
@@ -599,6 +600,7 @@ input[type="radio"]:checked + label {
 .delete-region-active {
 	background-color: rgb(from var(--danger) r g b / 0.5);
 	height: 16em;
+	z-index: 2000;
 	width: 16em;
 	.trash-cap {
 		transform: rotate(29deg) translateX(4px) translateY(-12px);
