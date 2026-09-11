@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	const addNewTodoBtn = document.querySelectorAll(".add-todo-btn");
 	const todoModal = document.querySelector("#addEditTodoModal");
 	const closeModalBtn = document.querySelectorAll(".btn-cancel-todo");
+	const exportBtn = document.querySelector(".export-btn");
 
 	const todoTitleInp = document.querySelector("#todoTitle");
 	const todoDescInp = document.querySelector("#todoDescription");
@@ -27,10 +28,6 @@ document.addEventListener("DOMContentLoaded", () => {
 		"Look at you, all caught up. Weird flex.",
 		"The void stares back. Add a task.",
 	];
-
-	let isMobile = false;
-
-	console.log(todoCols);
 
 	// functions
 	const toggleTodoModal = (bool, mode = "open", id = null) => {
@@ -211,6 +208,20 @@ document.addEventListener("DOMContentLoaded", () => {
 		updateTodoCount();
 	};
 
+	const exportTodos = () => {
+		if (todos.length < 1) {
+			return;
+		}
+		const blob = new Blob([JSON.stringify(todos)], { type: "application/json" });
+		const todosURL = URL.createObjectURL(blob);
+
+		let downloadLink = document.createElement("a");
+		downloadLink.href = todosURL;
+		downloadLink.download = "todos.json";
+		downloadLink.click();
+		URL.revokeObjectURL(todosURL);
+	};
+
 	//Todo Management Functions
 
 	const handleTodoSubmit = (id = null, mode = "add", idx = null) => {
@@ -235,7 +246,9 @@ document.addEventListener("DOMContentLoaded", () => {
 			return;
 		}
 		if (mode === "add") {
-			let todoId = `${todoTitle.replace(/\s/g, "").substring(0, 5)}${Date.now()}`.toString().substring(6);
+			let todoId = `${todoTitle.replace(/\s/g, "").substring(0, 5)}${Date.now().toString().substring(6)}`;
+			// 								^ Title ke six letters and time string ke last 6 digits use honge
+
 			todoObj = { todoId, todoTitle, todoDesc, todoDueDate, todoPriority: priority ?? "low", state: "todo" };
 		}
 
@@ -365,6 +378,9 @@ document.addEventListener("DOMContentLoaded", () => {
 			toggleTodoModal(false);
 		});
 	});
+
+	exportBtn.addEventListener("click", exportTodos);
+
 	todoCols.forEach((col) => {
 		col.addEventListener("dragover", (ev) => {
 			if (!ev.dataTransfer.types.includes("task")) {
