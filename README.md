@@ -31,6 +31,6 @@ A simple Kanban-style todo board that runs entirely in the browser.
 - Sound Effects
 - Priority System [Done]
 - Keyboard Shortcuts [Done]
-- Export todos as JSON
+- Export todos as JSON [Done]
 - Filtering/ Sorting
 - Settings

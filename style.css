@@ -249,9 +249,12 @@ main section {
 	pointer-events: none;
 	/* background: red; */
 	/* -- uncomment to visualize the hitbox while testing */
+	.icon {
+		pointer-events: none;
+	}
 }
 
-.drag-btn .icon {
+.drag-btn {
 	cursor: grab;
 }
 

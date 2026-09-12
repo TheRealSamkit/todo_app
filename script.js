@@ -2,25 +2,30 @@ let todos = [];
 import { vechicles } from "./assets/constants.js";
 
 document.addEventListener("DOMContentLoaded", () => {
-	let todoDragging = null;
-	let modalOpen = true;
+	let todoDragging,
+		currentEditId = null;
 	const wheels = Object.values(vechicles);
 	//Initializations...?
 
-	const addNewTodoBtn = document.querySelectorAll(".add-todo-btn");
-	const todoModal = document.querySelector("#addEditTodoModal");
-	const closeModalBtn = document.querySelectorAll(".btn-cancel-todo");
+	const taskModal = document.querySelector("#addEditTodoModal");
+	const addTaskBtn = document.querySelectorAll(".add-todo-btn");
+	const closeFormBtn = document.querySelectorAll(".btn-cancel-todo");
 	const exportBtn = document.querySelector(".export-btn");
+	const submitFormBtn = document.querySelector(".btn-submit-todo");
+	const modalFormTitle = document.querySelector(".form-action");
 
-	const todoTitleInp = document.querySelector("#todoTitle");
-	const todoDescInp = document.querySelector("#todoDescription");
-	const todoDueDateInp = document.querySelector("#todoDueDate");
-	const todoStateInp = document.querySelector("#todoState");
-	const todoCols = document.querySelectorAll(".todoCol");
+	const taskColumns = document.querySelectorAll(".todoCol");
 	const themeToggle = document.querySelector(".theme-toggle");
-	const radioGroup = document.querySelectorAll("input[name='Priority']");
 	const delRegion = document.querySelector(".delete-region");
-	const svgVechicle = document.querySelector(".vehicle");
+	const svgVehicle = document.querySelector(".vehicle");
+
+	const inputs = {
+		title: document.querySelector("#todoTitle"),
+		desc: document.querySelector("#todoDescription"),
+		dueDate: document.querySelector("#todoDueDate"),
+		state: document.querySelector("#todoState"),
+		radios: Array.from(document.querySelectorAll("input[name='Priority']")),
+	};
 
 	const emptyMessages = [
 		"Your to-do list is empty. Suspicious.",
@@ -30,145 +35,108 @@ document.addEventListener("DOMContentLoaded", () => {
 	];
 
 	// functions
-	const toggleTodoModal = (bool, mode = "open", id = null) => {
-		const submitTodoBtn = document.querySelector(".btn-submit-todo");
-		const modalTitle = document.querySelector(".form-action");
+	const toggleTaskModal = (isOpen, id = null) => {
+		taskModal.dataset.modalOpen = isOpen;
+		taskModal.classList.toggle("hide", !isOpen);
+		taskModal.classList.toggle("flex", isOpen);
 
-		if (bool) {
-			todoModal.dataset.modalOpen = true;
+		if (!isOpen) {
+			currentEditId = null;
+			return;
+		}
 
-			todoModal.classList.remove("hide");
-			todoStateInp.parentNode.classList.add("hide");
-			todoModal.classList.add("flex");
+		currentEditId = id; // Set state for the submit button to read
+		svgVehicle.innerHTML = wheels[rand(wheels.length)];
+		inputs.state.parentNode.classList.toggle("hide", !id);
 
-			if (mode === "open") {
-				todoTitleInp.value = "";
-				todoDescInp.value = "";
-				todoDueDateInp.value = "";
-				todoStateInp.value = "todo";
-				radioGroup.forEach((radio) => {
-					radio.checked = radio.value === "low" ? true : false;
-				});
-			}
+		if (id) {
+			//Edit mode
+			const todo = todos[getTodoIndex(id)];
+			modalFormTitle.textContent = `Edit ${todo.todoTitle.substring(0, 16)}${todo.todoTitle.length >= 16 ? "..." : ""}`;
+			submitFormBtn.textContent = "Update Task";
 
-			svgVechicle.innerHTML = wheels[rand(wheels.length)];
-
-			modalTitle.textContent = "Add New Task";
-			submitTodoBtn.textContent = mode === "open" ? "Add Task" : "Update Task";
-			todoTitleInp.focus();
-
-			todoModal.addEventListener(
-				"click",
-				(ev) => {
-					if (ev.target === todoModal) {
-						toggleTodoModal(false);
-					}
-				},
-				{ once: true },
-			);
+			inputs.title.value = todo.todoTitle;
+			inputs.desc.value = todo.todoDesc;
+			inputs.dueDate.value = todo.todoDueDate;
+			inputs.state.value = todo.state;
+			inputs.radios.forEach((r) => (r.checked = r.value === todo.todoPriority));
 		} else {
-			todoModal.classList.add("hide");
-			todoModal.classList.remove("flex");
-			submitTodoBtn.replaceWith(submitTodoBtn.cloneNode(true));
-			todoModal.dataset.modalOpen = false;
-			return;
+			// Add Mode
+			modalFormTitle.textContent = "Add New Task";
+			submitFormBtn.textContent = "Add Task";
+
+			inputs.title.value = "";
+			inputs.desc.value = "";
+			inputs.dueDate.value = "";
+			inputs.state.value = "todo";
+			inputs.radios.forEach((r) => (r.checked = r.value === "low"));
 		}
-
-		if (mode === "edit" && id !== null) {
-			todoStateInp.parentNode.classList.remove("hide");
-			const idx = getTodoIndex(id);
-			let todoData = todos[idx];
-
-			modalTitle.textContent =
-				"Edit " + todoData.todoTitle.substring(0, 16) + `${todoData.todoTitle.length >= 16 ? "..." : ""}`;
-
-			todoTitleInp.value = todoData.todoTitle;
-			todoDescInp.value = todoData.todoDesc;
-			todoDueDateInp.value = todoData.todoDueDate;
-			todoStateInp.value = todoData.state;
-			radioGroup.forEach((radio) => {
-				radio.checked = radio.value === todoData.todoPriority;
-			});
-
-			submitTodoBtn.addEventListener(
-				"click",
-				() => {
-					handleTodoSubmit(id, (mode = "edit"), idx);
-				},
-				{ once: true },
-			);
-
-			return;
-		}
-		submitTodoBtn.addEventListener("click", () => {
-			handleTodoSubmit((mode = "add"));
-		});
+		inputs.title.focus();
 	};
 
-	const updateTodosLocalStorage = () => {
+	const saveTasks = () => {
 		let data = JSON.stringify(todos);
-		localStorage.setItem("todos", data);
+		try {
+			localStorage.setItem("todos", data);
+		} catch (error) {
+			//notify and tell user to export instead i future add toasts
+		}
 	};
 
-	const readTodosLocalStorage = () => {
+	const loadTasks = () => {
 		if (localStorage.getItem("todos") === null) return;
-		todos = JSON.parse(localStorage.getItem("todos"));
+		try {
+			todos = JSON.parse(localStorage.getItem("todos"));
+		} catch {
+			todos = [];
+		}
 		return;
 	};
 
-	const createTodoElement = (todo) => {
+	const renderTask = (todo) => {
 		const todoItemsContainer = document.querySelector(".todo-container");
 		const inProgressItemsContainer = document.querySelector(".in-progress-container");
 		const completedItemsContainer = document.querySelector(".completed-container");
+		const isOverdue = new Date().toISOString().split("T")[0] > todo.todoDueDate && todo.state !== "completed";
+		const formattedDueDate = document.createTextNode(
+			new Intl.DateTimeFormat("en-GB").format(new Date(todo.todoDueDate)),
+		);
 		let parent =
 			todo.state === "todo"
 				? todoItemsContainer
 				: todo.state === "inProgress"
 					? inProgressItemsContainer
 					: completedItemsContainer;
-		const todoDiv = Object.assign(document.createElement("div"), {
-			className: "todo-card flex",
-			id: todo.todoId,
-			draggable: false,
-			innerHTML: `<div class="todo-header flex">
-							<span class="todo-title"> </span>
-							<div class="action-wrapper">
-								<button class="btn-edit">
-									<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon">
-										<path
-											d="M441 58.9L453.1 71c9.4 9.4 9.4 24.6 0 33.9L424 134.1 377.9 88 407 58.9c9.4-9.4 24.6-9.4 33.9 0zM209.8 256.2L344 121.9 390.1 168 255.8 302.2c-2.9 2.9-6.5 5-10.4 6.1l-58.5 16.7 16.7-58.5c1.1-3.9 3.2-7.5 6.1-10.4zM373.1 25L175.8 222.2c-8.7 8.7-15 19.4-18.3 31.1l-28.6 100c-2.4 8.4-.1 17.4 6.1 23.6s15.2 8.5 23.6 6.1l100-28.6c11.8-3.4 22.5-9.7 31.1-18.3L487 138.9c28.1-28.1 28.1-73.7 0-101.8L474.9 25C446.8-3.1 401.2-3.1 373.1 25zM88 64C39.4 64 0 103.4 0 152L0 424c0 48.6 39.4 88 88 88l272 0c48.6 0 88-39.4 88-88l0-112c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 112c0 22.1-17.9 40-40 40L88 464c-22.1 0-40-17.9-40-40l0-272c0-22.1 17.9-40 40-40l112 0c13.3 0 24-10.7 24-24s-10.7-24-24-24L88 64z"
-										/>
-									</svg>
-								</button>
-								<button class="btn-delete">
-									<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon">
-										<path
-											d="M136.7 5.9C141.1-7.2 153.3-16 167.1-16l113.9 0c13.8 0 26 8.8 30.4 21.9L320 32 416 32c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 96C14.3 96 0 81.7 0 64S14.3 32 32 32l96 0 8.7-26.1zM32 144l384 0 0 304c0 35.3-28.7 64-64 64L96 512c-35.3 0-64-28.7-64-64l0-304zm88 64c-13.3 0-24 10.7-24 24l0 192c0 13.3 10.7 24 24 24s24-10.7 24-24l0-192c0-13.3-10.7-24-24-24zm104 0c-13.3 0-24 10.7-24 24l0 192c0 13.3 10.7 24 24 24s24-10.7 24-24l0-192c0-13.3-10.7-24-24-24zm104 0c-13.3 0-24 10.7-24 24l0 192c0 13.3 10.7 24 24 24s24-10.7 24-24l0-192c0-13.3-10.7-24-24-24z"
-										/>
-									</svg>
-								</button>
 
-								<button class="drag-btn">
-									<svg
-										xmlns="http://www.w3.org/2000/svg"
-										viewBox="0 0 640 640"
-										data-todo-id="${todo.todoId}"
-										class="icon"
-									>
-										<path
-											d="M288 104C288 81.9 270.1 64 248 64L200 64C177.9 64 160 81.9 160 104L160 152C160 174.1 177.9 192 200 192L248 192C270.1 192 288 174.1 288 152L288 104zM288 296C288 273.9 270.1 256 248 256L200 256C177.9 256 160 273.9 160 296L160 344C160 366.1 177.9 384 200 384L248 384C270.1 384 288 366.1 288 344L288 296zM160 488L160 536C160 558.1 177.9 576 200 576L248 576C270.1 576 288 558.1 288 536L288 488C288 465.9 270.1 448 248 448L200 448C177.9 448 160 465.9 160 488zM480 104C480 81.9 462.1 64 440 64L392 64C369.9 64 352 81.9 352 104L352 152C352 174.1 369.9 192 392 192L440 192C462.1 192 480 174.1 480 152L480 104zM352 296L352 344C352 366.1 369.9 384 392 384L440 384C462.1 384 480 366.1 480 344L480 296C480 273.9 462.1 256 440 256L392 256C369.9 256 352 273.9 352 296zM480 488C480 465.9 462.1 448 440 448L392 448C369.9 448 352 465.9 352 488L352 536C352 558.1 369.9 576 392 576L440 576C462.1 576 480 558.1 480 536L480 488z"
-										/>
-									</svg>
-								</button>
-							</div>
-						</div>
-						<p class="todo-description"></p>
-						<div class="todo-due-date">Due: </div>`,
-		});
+		const todoDiv = document.createElement("div");
+		todoDiv.className = `todo-card flex priority-${todo.todoPriority}`;
 		todoDiv.dataset.state = todo.state;
+		todoDiv.id = todo.todoId;
+		todoDiv.draggable = false;
+		todoDiv.innerHTML = `<div class="todo-header flex">
+								<span class="todo-title"> </span>
+								<div class="action-wrapper">
+									<button class="btn-edit">
+										<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="icon">
+											<path d="M441 58.9L453.1 71c9.4 9.4 9.4 24.6 0 33.9L424 134.1 377.9 88 407 58.9c9.4-9.4 24.6-9.4 33.9 0zM209.8 256.2L344 121.9 390.1 168 255.8 302.2c-2.9 2.9-6.5 5-10.4 6.1l-58.5 16.7 16.7-58.5c1.1-3.9 3.2-7.5 6.1-10.4zM373.1 25L175.8 222.2c-8.7 8.7-15 19.4-18.3 31.1l-28.6 100c-2.4 8.4-.1 17.4 6.1 23.6s15.2 8.5 23.6 6.1l100-28.6c11.8-3.4 22.5-9.7 31.1-18.3L487 138.9c28.1-28.1 28.1-73.7 0-101.8L474.9 25C446.8-3.1 401.2-3.1 373.1 25zM88 64C39.4 64 0 103.4 0 152L0 424c0 48.6 39.4 88 88 88l272 0c48.6 0 88-39.4 88-88l0-112c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 112c0 22.1-17.9 40-40 40L88 464c-22.1 0-40-17.9-40-40l0-272c0-22.1 17.9-40 40-40l112 0c13.3 0 24-10.7 24-24s-10.7-24-24-24L88 64z"/>
+										</svg>
+									</button>
+									<button class="btn-delete">
+										<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="icon">
+											<path d="M136.7 5.9C141.1-7.2 153.3-16 167.1-16l113.9 0c13.8 0 26 8.8 30.4 21.9L320 32 416 32c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 96C14.3 96 0 81.7 0 64S14.3 32 32 32l96 0 8.7-26.1zM32 144l384 0 0 304c0 35.3-28.7 64-64 64L96 512c-35.3 0-64-28.7-64-64l0-304zm88 64c-13.3 0-24 10.7-24 24l0 192c0 13.3 10.7 24 24 24s24-10.7 24-24l0-192c0-13.3-10.7-24-24-24zm104 0c-13.3 0-24 10.7-24 24l0 192c0 13.3 10.7 24 24 24s24-10.7 24-24l0-192c0-13.3-10.7-24-24-24zm104 0c-13.3 0-24 10.7-24 24l0 192c0 13.3 10.7 24 24 24s24-10.7 24-24l0-192c0-13.3-10.7-24-24-24z"/>
+										</svg>
+									</button>
 
-		todoDiv.classList.add(`priority-${todo.todoPriority ?? "low"}`);
-
+									<button class="drag-btn">
+										<svg
+											xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" data-todo-id="${todo.todoId}" class="icon" >
+											<path d="M288 104C288 81.9 270.1 64 248 64L200 64C177.9 64 160 81.9 160 104L160 152C160 174.1 177.9 192 200 192L248 192C270.1 192 288 174.1 288 152L288 104zM288 296C288 273.9 270.1 256 248 256L200 256C177.9 256 160 273.9 160 296L160 344C160 366.1 177.9 384 200 384L248 384C270.1 384 288 366.1 288 344L288 296zM160 488L160 536C160 558.1 177.9 576 200 576L248 576C270.1 576 288 558.1 288 536L288 488C288 465.9 270.1 448 248 448L200 448C177.9 448 160 465.9 160 488zM480 104C480 81.9 462.1 64 440 64L392 64C369.9 64 352 81.9 352 104L352 152C352 174.1 369.9 192 392 192L440 192C462.1 192 480 174.1 480 152L480 104zM352 296L352 344C352 366.1 369.9 384 392 384L440 384C462.1 384 480 366.1 480 344L480 296C480 273.9 462.1 256 440 256L392 256C369.9 256 352 273.9 352 296zM480 488C480 465.9 462.1 448 440 448L392 448C369.9 448 352 465.9 352 488L352 536C352 558.1 369.9 576 392 576L440 576C462.1 576 480 558.1 480 536L480 488z"/>
+										</svg>
+									</button>
+									</div>
+							</div>
+							<p class="todo-description"></p>
+							<div class="todo-due-date">Due: </div>`;
 		let titleSpan = todoDiv.querySelector(".todo-title");
 		titleSpan.textContent = todo.todoTitle;
 		titleSpan.classList.toggle("auto-scroll", todo.todoTitle.length >= 30);
@@ -176,36 +144,13 @@ document.addEventListener("DOMContentLoaded", () => {
 		todoDiv.querySelector(".todo-description").textContent = todo.todoDesc;
 
 		let dueDateDiv = todoDiv.querySelector(".todo-due-date");
-		dueDateDiv.classList.toggle(
-			"date-overdue",
-			new Date().toISOString().split("T")[0] > todo.todoDueDate && todo.state !== "completed",
-		);
-		dueDateDiv.append(document.createTextNode(new Intl.DateTimeFormat("en-GB").format(new Date(todo.todoDueDate))));
-
-		// Adding event Listeners...
-		todoDiv.querySelector(".btn-delete").addEventListener("click", () => {
-			handleTodoDelete(todo.todoId);
-		});
-		todoDiv.querySelector(".btn-edit").addEventListener("click", () => {
-			console.log("here");
-			toggleTodoModal(true, "edit", todo.todoId);
-		});
-		todoDiv.querySelector(".drag-btn").addEventListener("mousedown", () => {
-			todoDiv.draggable = true;
-			todoDiv.style.opacity = 0.5;
-		});
-		todoDiv.querySelector(".drag-btn").addEventListener("mouseout", () => {
-			todoDiv.draggable = false;
-			todoDiv.style.opacity = 1;
-		});
-		todoDiv.addEventListener("dragstart", (event) => {
-			handleTodoDragStart(event);
-		});
+		dueDateDiv.classList.toggle("date-overdue", isOverdue);
+		dueDateDiv.append(formattedDueDate);
 
 		//Final Append, Cleanup and Update in count
 		parent.appendChild(todoDiv);
 		toggleEmptyState(false);
-		updateTodoCount();
+		updateTasksCount();
 	};
 
 	const exportTodos = () => {
@@ -217,96 +162,78 @@ document.addEventListener("DOMContentLoaded", () => {
 
 		let downloadLink = document.createElement("a");
 		downloadLink.href = todosURL;
-		downloadLink.download = "todos.json";
+		downloadLink.download = `todos_${new Date().toISOString().split("T")[0]}.json`;
 		downloadLink.click();
 		URL.revokeObjectURL(todosURL);
 	};
 
 	//Todo Management Functions
 
-	const handleTodoSubmit = (id = null, mode = "add", idx = null) => {
-		const submitTodoBtn = document.querySelector(".btn-submit-todo");
+	const handleFormSubmit = () => {
+		const title = inputs.title.value.trim();
+		const dueDate = inputs.dueDate.value;
+		const priority = document.querySelector("input[name='Priority']:checked")?.value || "low";
 
-		let todoTitle = todoTitleInp.value;
-		let todoDesc = todoDescInp.value;
-		let todoDueDate = todoDueDateInp.value;
-		let todoState = todoStateInp.value;
-		let priority = document.querySelector("input[name='Priority']:checked").value;
-		let todoObj = {};
+		inputs.title.classList.toggle("false", !title);
+		inputs.dueDate.classList.toggle("false", !dueDate);
+		if (!title || !dueDate) return;
 
-		todoTitleInp.classList.remove("false");
-		todoDueDateInp.classList.remove("false");
-		todoTitle = todoTitle.trim();
-		if (todoTitle === null || todoTitle === "") {
-			todoTitleInp.classList.add("false");
-			return;
-		}
-		if (todoDueDate === null || todoDueDate === "") {
-			todoDueDateInp.classList.add("false");
-			return;
-		}
-		if (mode === "add") {
-			let todoId = `${todoTitle.replace(/\s/g, "").substring(0, 5)}${Date.now().toString().substring(6)}`;
-			// 								^ Title ke six letters and time string ke last 6 digits use honge
-
-			todoObj = { todoId, todoTitle, todoDesc, todoDueDate, todoPriority: priority ?? "low", state: "todo" };
-		}
-
-		if (mode === "edit" && id !== null && idx !== null) {
-			todoObj = {
-				todoId: id,
-				todoTitle,
-				todoDesc,
-				todoDueDate,
-				todoPriority: priority ?? "low",
-				state: todoState,
+		if (currentEditId) {
+			const idx = getTodoIndex(currentEditId);
+			todos[idx] = {
+				...todos[idx],
+				todoTitle: title,
+				todoDesc: inputs.desc.value,
+				todoDueDate: dueDate,
+				todoPriority: priority,
+				state: inputs.state.value,
 			};
-			handleTodoDelete(id);
+
+			document.getElementById(currentEditId).remove();
+			renderTask(todos[idx]);
+		} else {
+			const newTask = {
+				todoId: crypto.randomUUID().substring(24),
+				todoTitle: title,
+				todoDesc: inputs.desc.value,
+				todoDueDate: dueDate,
+				todoPriority: priority,
+				state: "todo",
+			};
+			todos.unshift(newTask);
+			renderTask(newTask);
 		}
 
-		todos.unshift(todoObj);
-		updateTodosLocalStorage();
-		createTodoElement(todoObj);
-		toggleTodoModal(false);
-		submitTodoBtn.replaceWith(submitTodoBtn.cloneNode(true));
+		saveTasks();
+		toggleTaskModal(false);
 	};
 
-	const handleTodoDelete = (id) => {
-		const idx = getTodoIndex(id);
+	const handleTaskDelete = (id) => {
+		todos = todos.filter((t) => t.todoId !== id);
+		console.log("Removing task with this id: ", id);
 
-		if (idx !== -1) {
-			todos.splice(idx, 1);
-		}
-		console.log("Removing with index: ", idx, "with id: ", id);
 		if (todos.length === 0) toggleEmptyState(true);
-		document.getElementById(id).remove();
-		updateTodosLocalStorage();
-		updateTodoCount();
-	};
-
-	const handleTodoDragStart = (ev) => {
-		todoDragging = document.getElementById(ev.target.id);
-		ev.dataTransfer.effectAllowed = "move";
-		ev.dataTransfer.setData("task", "");
-
-		delRegion.classList.remove("hide");
+		document.getElementById(id)?.remove();
+		updateTasksCount();
+		saveTasks();
 	};
 
 	const handleTodoDrop = (ev, column) => {
 		ev.preventDefault();
 
+		const targetState = column.dataset.state;
+
 		todoDragging.style.opacity = 1;
 		todoDragging.remove();
-		if (column.dataset.state === "completed" && todoDragging.dataset.state !== column.dataset.state)
-			confettiAnimation();
+		if (targetState === "completed" && todoDragging.dataset.state !== targetState) confettiAnimation();
+
 		column.querySelector(".card-container").appendChild(todoDragging);
-		const idx = getTodoIndex(todoDragging.id);
-		todos[idx].state = column.dataset.state;
-		todoDragging.dataset.state = column.dataset.state;
+		todos[getTodoIndex(todoDragging.id)].state = targetState;
+		todoDragging.dataset.state = targetState;
 		delRegion.classList.add("hide");
 
-		updateTodosLocalStorage();
-		updateTodoCount();
+		saveTasks();
+		updateTasksCount();
 		todoDragging = null;
 		return;
 		// document.querySelectorAll(".placeholder").forEach((el) => el.remove());
@@ -335,10 +262,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	//UX ke liye functions
 
-	const updateTodoCount = () => {
-		todoCols.forEach((col) => {
-			let count = col.querySelectorAll(".todo-card").length;
-			col.querySelector(".todo-count").textContent = count;
+	const updateTasksCount = () => {
+		taskColumns.forEach((col) => {
+			col.querySelector(".todo-count").textContent = col.querySelectorAll(".todo-card").length;
 		});
 	};
 
@@ -351,10 +277,11 @@ document.addEventListener("DOMContentLoaded", () => {
 	};
 
 	const confettiAnimation = () => {
+		if (typeof confetti === "undefined") return;
+
 		const duration = 3000;
 		const animationEnd = Date.now() + duration;
 		const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
-
 		const interval = setInterval(() => {
 			const timeLeft = animationEnd - Date.now();
 			if (timeLeft <= 0) return clearInterval(interval);
@@ -368,21 +295,52 @@ document.addEventListener("DOMContentLoaded", () => {
 	};
 
 	// Adding Event Listeners
-	addNewTodoBtn.forEach((btn) => {
+	addTaskBtn.forEach((btn) => {
 		btn.addEventListener("click", () => {
-			toggleTodoModal(true);
-		});
-	});
-	closeModalBtn.forEach((btn) => {
-		btn.addEventListener("click", () => {
-			toggleTodoModal(false);
+			toggleTaskModal(true);
 		});
 	});
 
+	closeFormBtn.forEach((btn) => {
+		btn.addEventListener("click", () => {
+			toggleTaskModal(false);
+		});
+	});
+
+	submitFormBtn.addEventListener("click", handleFormSubmit);
 	exportBtn.addEventListener("click", exportTodos);
 
-	todoCols.forEach((col) => {
-		col.addEventListener("dragover", (ev) => {
+	taskModal.addEventListener("click", (e) => {
+		if (e.target === taskModal) toggleTaskModal(false);
+	});
+
+	taskColumns.forEach((taskCol) => {
+		taskCol.addEventListener("click", (e) => {
+			const card = e.target.closest(".todo-card");
+			if (!card) return;
+
+			if (e.target.closest(".btn-delete")) handleTaskDelete(card.id);
+			if (e.target.closest(".btn-edit")) toggleTaskModal(true, card.id);
+		});
+
+		taskCol.addEventListener("mousedown", (e) => {
+			const card = e.target.closest(".todo-card");
+
+			if (card && e.target.closest(".drag-btn")) {
+				card.draggable = true;
+				card.style.opacity = 0.5;
+			}
+		});
+		taskCol.addEventListener("mouseout", (e) => {
+			const card = e.target.closest(".todo-card");
+
+			if (card && e.target.closest(".drag-btn")) {
+				card.draggable = false;
+				card.style.opacity = 1;
+			}
+		});
+
+		taskCol.addEventListener("dragover", (ev) => {
 			if (!ev.dataTransfer.types.includes("task")) {
 				return;
 			}
@@ -393,29 +351,41 @@ document.addEventListener("DOMContentLoaded", () => {
 			// if (todoDragging.dataset.state === col.dataset.state) return;
 			// cardContainer.appendChild(makePlaceHolder());
 		});
-		col.addEventListener("drop", (ev) => {
-			handleTodoDrop(ev, col);
+		taskCol.addEventListener("drop", (e) => {
+			handleTodoDrop(e, taskCol);
+		});
+
+		taskCol.addEventListener("dragstart", (ev) => {
+			const card = ev.target.closest(".todo-card");
+			if (card) {
+				todoDragging = card;
+				ev.dataTransfer.effectAllowed = "move";
+				ev.dataTransfer.setData("task", "");
+				delRegion.classList.remove("hide");
+			}
 		});
 	});
 	// Listeners for delete region
 
-	delRegion.addEventListener("dragenter", () => {
-		delRegion.classList.toggle("delete-region-active");
-	});
+	if (delRegion) {
+		delRegion.addEventListener("dragenter", () => {
+			delRegion.classList.toggle("delete-region-active");
+		});
 
-	delRegion.addEventListener("dragleave", () => {
-		delRegion.classList.toggle("delete-region-active");
-	});
+		delRegion.addEventListener("dragleave", () => {
+			delRegion.classList.toggle("delete-region-active");
+		});
 
-	delRegion.addEventListener("dragover", (ev) => {
-		ev.preventDefault();
-	});
+		delRegion.addEventListener("dragover", (ev) => {
+			ev.preventDefault();
+		});
 
-	delRegion.addEventListener("drop", () => {
-		handleTodoDelete(todoDragging.id);
-		todoDragging = null;
-		delRegion.classList.add("hide");
-	});
+		delRegion.addEventListener("drop", () => {
+			handleTaskDelete(todoDragging.id);
+			todoDragging = null;
+			delRegion.classList.add("hide");
+		});
+	}
 
 	document.addEventListener("keyup", (evt) => {
 		if (evt.key === "Escape") {
@@ -424,7 +394,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			if (!modal) return;
 
 			if (modal.dataset.modalName === "addEditTodoModal") {
-				toggleTodoModal(false);
+				toggleTaskModal(false);
 			}
 		}
 
@@ -433,8 +403,8 @@ document.addEventListener("DOMContentLoaded", () => {
 			activeElem.tagName === "INPUT" || activeElem.tagName === "TEXTAREA" || activeElem.isContentEditable;
 		if (isEditing) return;
 		if (evt.key.toLowerCase() === "n") {
-			if (todoModal.dataset.modalOpen === "true") return;
-			toggleTodoModal(true);
+			if (taskModal.dataset.modalOpen === "true") return;
+			toggleTaskModal(true);
 		}
 	});
 
@@ -473,12 +443,12 @@ document.addEventListener("DOMContentLoaded", () => {
 	//Ye apne aap run hoga jab page/script load hogi
 
 	(() => {
-		readTodosLocalStorage();
+		loadTasks();
 		applyTheme(document.documentElement.getAttribute("data-theme") || getTheme());
 		if (todos === undefined || todos.length === 0) {
 			toggleEmptyState(true);
-			return;
+		} else {
+			todos.forEach((todo) => renderTask(todo));
 		}
-		todos.forEach((todo) => createTodoElement(todo));
 	})();
 });
