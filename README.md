@@ -34,3 +34,4 @@ A simple Kanban-style todo board that runs entirely in the browser.
 - Export todos as JSON [Done]
 - Filtering/ Sorting
 - Settings
+- Toasts
