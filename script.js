@@ -7,6 +7,8 @@ document.addEventListener("DOMContentLoaded", () => {
 	const wheels = Object.values(vehicles);
 	//Initializations...?
 
+	const toast = new Toast();
+
 	const taskModal = document.querySelector("#addEditTodoModal");
 	const addTaskBtn = document.querySelectorAll(".add-todo-btn");
 	const closeFormBtn = document.querySelectorAll(".btn-cancel-todo");
@@ -187,7 +189,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	const handleTaskDelete = (id) => {
 		taskList = taskList.filter((t) => t.todoId !== id);
 		console.log("Removing task with this id: ", id);
-
+		toast.show("normal", "Task Deleted");
 		if (taskList.length === 0) toggleEmptyState(true);
 		document.getElementById(id)?.remove();
 		updateTasksCount();
@@ -428,5 +430,6 @@ document.addEventListener("DOMContentLoaded", () => {
 		} else {
 			taskList.forEach((todo) => renderTask(todo));
 		}
+		toast.show("success", "Hello!", "Mission complete.");
 	})();
 });

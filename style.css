@@ -13,6 +13,13 @@
 	--white: #fff;
 	--black: #000;
 
+	/* accent colors */
+
+	--success: #4cbb17;
+	--danger: #ce2029;
+	--info: #0095ff;
+	--warning: #ffbf00;
+
 	--low-priority: #4cbb17;
 	--medium-priority: #ffbf00;
 	--high-priority: #ce2029;
