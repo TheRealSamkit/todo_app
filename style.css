@@ -323,8 +323,14 @@ main {
 	transition: all 0.2s;
 }
 
-.btn:hover {
-	background-color: #025ace;
+.btn-primary {
+	--btn-bg-color: var(--primary) !important;
+	background-color: var(--primary);
+}
+
+.btn-danger {
+	--btn-bg-color: var(--danger) !important;
+	background-color: var(--danger);
 }
 
 .btn-secondary {
@@ -332,14 +338,13 @@ main {
 	background-color: var(--secondary);
 }
 
-.btn-primary {
-	--btn-bg-color: var(--primary) !important;
-	background-color: var(--primary);
+.btn:focus-visible {
+	outline: 5px solid rgb(from var(--btn-bg-color) r g b / 0.5); /*Create a outline with lesser opacity of original color*/
+	background-color: color-mix(in oklab, var(--btn-bg-color), black 10%); /*This will add 10% darkness */
 }
 
-.btn:focus-visible {
-	outline: 5px solid rgb(from var(--btn-bg-color) r g b / 0.5);
-	background-color: #025ace;
+.btn:hover {
+	background-color: color-mix(in oklab, var(--btn-bg-color), black 10%); /*This will add 10% darkness */
 }
 
 .hide {
@@ -414,7 +419,7 @@ select {
 
 .false {
 	outline: 2px solid var(--danger);
-	animation: shake 0.5s ease-out;
+	animation: vibrateAnimation 0.5s ease-out;
 }
 
 input[type="radio"] {
@@ -450,7 +455,7 @@ input[type="radio"]:focus-visible {
 		position: absolute;
 		z-index: -1;
 		left: 0;
-		animation: move-animation 5s linear infinite;
+		animation: moveAni 5s linear infinite;
 	}
 
 	label {
@@ -495,7 +500,7 @@ input[type="radio"]:checked + label {
 		display: inline-block;
 	}
 }
-@keyframes move-animation {
+@keyframes moveAni {
 	0% {
 		left: 0%;
 		stroke: var(--low-priority);
@@ -509,7 +514,7 @@ input[type="radio"]:checked + label {
 	}
 }
 
-@keyframes shake {
+@keyframes vibrateAnimation {
 	0% {
 		transform: translateX(0);
 	}

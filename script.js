@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	const wheels = Object.values(vehicles);
 	//Initializations...?
 
-	const toast = new Toast();
+	const toast = new Toast(); // toast management ke liye object create hoga
 
 	const taskModal = document.querySelector("#addEditTodoModal");
 	const addTaskBtn = document.querySelectorAll(".add-todo-btn");
@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		dueDate: document.querySelector("#todoDueDate"),
 		state: document.querySelector("#todoState"),
 		radios: Array.from(document.querySelectorAll("input[name='Priority']")),
-	};
+	}; // Cached input elements
 
 	const toggleTaskModal = (isOpen, id = null) => {
 		taskModal.dataset.modalOpen = isOpen;
@@ -54,7 +54,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		// Agar id pass ki hogi to edit mode me jagya nhi to add mode
 		if (id) {
 			const todo = taskList[getTodoIndex(id)];
-			modalFormTitle.textContent = `Edit ${todo.todoTitle.substring(0, 16)}${todo.todoTitle.length >= 16 ? "..." : ""}`;
+			modalFormTitle.textContent = `Edit ${todo.todoTitle.substring(0, 16)}${todo.todoTitle.length > 16 ? "..." : ""}`;
 			submitFormBtn.textContent = "Update Task";
 
 			inputs.title.value = todo.todoTitle;
@@ -80,14 +80,15 @@ document.addEventListener("DOMContentLoaded", () => {
 		try {
 			localStorage.setItem("todos", data);
 		} catch (error) {
-			//notify and tell user to export instead i future add toasts
+			toast.show("error", "Error Saving Tasks", "Please Export Instead..!");
 		}
 	};
 
 	const loadTasks = () => {
 		if (localStorage.getItem("todos") === null) return;
 		try {
-			taskList = JSON.parse(localStorage.getItem("todos"));
+			const parsed = JSON.parse(localStorage.getItem("todos"));
+			taskList = Array.isArray(parsed) ? parsed : [];
 		} catch {
 			taskList = [];
 		}
@@ -99,7 +100,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			new Date().toISOString().split("T")[0] > taskItem.todoDueDate && taskItem.state !== "completed";
 		const formattedDueDate = document.createTextNode(
 			new Intl.DateTimeFormat("en-GB").format(new Date(taskItem.todoDueDate)),
-		);
+		); //^ ye kuch is tarah se format hoga: DD/MM/YYYY
 
 		const taskElem = document.createElement("div");
 		taskElem.className = `todo-card flex priority-${taskItem.todoPriority}`;
@@ -116,14 +117,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
 		let dueDateDiv = taskElem.querySelector(".todo-due-date");
 		dueDateDiv.classList.toggle("date-overdue", isOverdue);
+		// ^ yaha future me aur easter eggs add ho skte hn
 		dueDateDiv.append(formattedDueDate);
 
 		//Final Append, Cleanup and Update in count
 
 		taskColumns
-			.find((taskCol) => taskCol.dataset.state === taskItem.state)
-			.querySelector(".card-container")
-			.appendChild(taskElem);
+			.find((taskCol) => taskCol.dataset.state === taskItem.state) // yaha se sahi parent container
+			.querySelector(".card-container") //  decide hota hn jis ke andar task insert hoga
+			.prepend(taskElem);
 		toggleEmptyState(false);
 		updateTasksCount();
 	};
@@ -153,6 +155,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		inputs.title.classList.toggle("false", !title);
 		inputs.dueDate.classList.toggle("false", !dueDate);
 		if (!title || !dueDate) return;
+		// ^agar title ya due-date empty ho to task create nahi hoga
 
 		// Agar id set hogi state me to existing task to edit/update karega
 		// nhi to naya create karega ..
@@ -190,13 +193,15 @@ document.addEventListener("DOMContentLoaded", () => {
 		taskList = taskList.filter((t) => t.todoId !== id);
 		console.log("Removing task with this id: ", id);
 		toast.show("normal", "Task Deleted");
+		// ^ future me undo task delete add ho skta hn
+		// localstorage ya temp caching se
 		if (taskList.length === 0) toggleEmptyState(true);
 		document.getElementById(id)?.remove();
 		updateTasksCount();
 		saveTasks();
 	};
 
-	const handleTodoDrop = (ev, column) => {
+	const handleTaskDrop = (ev, column) => {
 		ev.preventDefault();
 
 		const targetState = column.dataset.state;
@@ -205,13 +210,14 @@ document.addEventListener("DOMContentLoaded", () => {
 		currentDraggingTask.remove();
 		if (targetState === "completed" && currentDraggingTask.dataset.state !== targetState) confettiAnimation();
 
-		column.querySelector(".card-container").appendChild(currentDraggingTask);
+		column.querySelector(".card-container").prepend(currentDraggingTask);
 		taskList[getTodoIndex(currentDraggingTask.id)].state = targetState;
 		currentDraggingTask.dataset.state = targetState;
 		delRegion.classList.add("hide");
+		currentDraggingTask.draggable = false;
 
-		saveTasks();
 		updateTasksCount();
+		saveTasks();
 		currentDraggingTask = null;
 		return;
 		// document.querySelectorAll(".placeholder").forEach((el) => el.remove());
@@ -225,6 +231,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	const getTodoIndex = (todoId) => {
 		return taskList.findIndex((todo) => todo.todoId === todoId);
+		// ye jyda optimised nhi hn future me kuch aur use karna hoga
+		// koi sorting algorithm ya kuch aur..!?
 	};
 
 	const makePlaceHolder = () => {
@@ -237,6 +245,25 @@ document.addEventListener("DOMContentLoaded", () => {
 								<div class="todo-due-date"></div>`;
 		return placeholder;
 	};
+
+	function createSampleTasks(max = 5) {
+		let priorities = ["low", "medium", "high"];
+		let states = ["todo", "inProgress", "completed"];
+		for (let i = 0; i < max; i++) {
+			const newTask = {
+				todoId: crypto.randomUUID(),
+				todoTitle: `test ${i + 1}`,
+				todoDesc: `This is test task number: ${i + 1}`,
+				todoDueDate: new Date().toISOString().split("T")[0],
+				todoPriority: priorities[rand(priorities.length)],
+				state: states[rand(states.length)],
+			};
+			taskList.unshift(newTask);
+			renderTask(newTask);
+		}
+		saveTasks();
+		toggleEmptyState(false);
+	}
 
 	//UX ke liye functions
 
@@ -290,9 +317,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	taskModal.addEventListener("click", (e) => {
 		if (e.target === taskModal) toggleTaskModal(false);
+		// ye jab he close hoga agar modal ka parent target ho
 	});
 
 	taskColumns.forEach((taskCol) => {
+		/* is ke andar most-of listeners ke liye event delegation ka use huva hn
+		jaise ki ek primary evt listener sirf parent pe attached hn aur
+		jab parent ke andar koi evt perform hoga to vo closest ya fir target
+		element ko find karega aur jis operation ke btn ko click kiya hoga
+		uske handler ko fire karega .. ye explanation future me update ho skti hn */
+
 		taskCol.addEventListener("click", (e) => {
 			const card = e.target.closest(".todo-card");
 			if (!card) return;
@@ -300,6 +334,52 @@ document.addEventListener("DOMContentLoaded", () => {
 			if (e.target.closest(".btn-delete")) handleTaskDelete(card.id);
 			if (e.target.closest(".btn-edit")) toggleTaskModal(true, card.id);
 		});
+
+		taskCol.addEventListener("dragover", (ev) => {
+			if (!ev.dataTransfer.types.includes("task")) {
+				return;
+			}
+			ev.preventDefault();
+
+			//placeholder management ye future me add hoga
+
+			// let cardContainer = col.querySelector(".card-container");
+			// console.log(todoDragging);
+			// if (cardContainer.querySelector(".placeholder")) return;
+			// if (todoDragging.dataset.state === col.dataset.state) return;
+			// cardContainer.appendChild(makePlaceHolder());
+		});
+		taskCol.addEventListener("drop", (e) => {
+			handleTaskDrop(e, taskCol);
+		});
+
+		taskCol.addEventListener("dragstart", (ev) => {
+			const card = ev.target.closest(".todo-card");
+			if (card) {
+				currentDraggingTask = card;
+				ev.dataTransfer.effectAllowed = "move";
+				ev.dataTransfer.setData("task", "");
+				delRegion?.classList.remove("hide");
+			}
+		});
+
+		taskCol.addEventListener("dragend", (ev) => {
+			const card = ev.target.closest(".todo-card");
+			if (card) {
+				card.draggable = false;
+				card.style.opacity = 1;
+			}
+			delRegion?.classList.add("hide");
+			delRegion?.classList.remove("delete-region-active");
+			currentDraggingTask = null;
+		});
+
+		/* niche ke do listeners sirf user experience ko improve karne ke liye hn
+		 ye dono mouse ko track karenge and if user drag btn pe hover karega
+		 to hee vo task ko draggable banayega .. ye kyu add kiya hn ?
+		 cause jo elem draggable hota hn uske andar ke text ka selection hard ho
+		 jata hn isliye user ki convenience ke liye yee add kiya hn
+		 future me settings me iske toggle add kiya ja skta hn */
 
 		taskCol.addEventListener("mousedown", (e) => {
 			const card = e.target.closest(".todo-card");
@@ -317,34 +397,9 @@ document.addEventListener("DOMContentLoaded", () => {
 				card.style.opacity = 1;
 			}
 		});
-
-		taskCol.addEventListener("dragover", (ev) => {
-			if (!ev.dataTransfer.types.includes("task")) {
-				return;
-			}
-			ev.preventDefault();
-			// let cardContainer = col.querySelector(".card-container");
-			// console.log(todoDragging);
-			// if (cardContainer.querySelector(".placeholder")) return;
-			// if (todoDragging.dataset.state === col.dataset.state) return;
-			// cardContainer.appendChild(makePlaceHolder());
-		});
-		taskCol.addEventListener("drop", (e) => {
-			handleTodoDrop(e, taskCol);
-		});
-
-		taskCol.addEventListener("dragstart", (ev) => {
-			const card = ev.target.closest(".todo-card");
-			if (card) {
-				currentDraggingTask = card;
-				ev.dataTransfer.effectAllowed = "move";
-				ev.dataTransfer.setData("task", "");
-				delRegion?.classList.remove("hide");
-			}
-		});
 	});
 
-	// Listeners for delete region
+	// Listeners for delete region with guard statement
 
 	if (delRegion) {
 		delRegion.addEventListener("dragenter", () => {
@@ -368,10 +423,11 @@ document.addEventListener("DOMContentLoaded", () => {
 	}
 
 	document.addEventListener("keyup", (evt) => {
+		// keyboard shortcuts
 		const activeElem = document.activeElement;
 		if (evt.key === "Escape") {
 			if (activeElem.tagName === "SELECT" || activeElem.type === "date") return;
-
+			// Agar koi select element ya date element focused hoga to esc default behaviour kam karega
 			let modal = document.querySelector(`.modal[data-modal-open="true"]`);
 
 			if (!modal) return;
@@ -384,6 +440,14 @@ document.addEventListener("DOMContentLoaded", () => {
 		const isEditing =
 			activeElem.tagName === "INPUT" || activeElem.tagName === "TEXTAREA" || activeElem.isContentEditable;
 		if (isEditing) return;
+		// Agar koi editable element focused hoga to ye operations nhi honge
+
+		if (evt.ctrlKey && evt.key.toLowerCase() === "m") {
+			createSampleTasks(10);
+			// Ye test ke liye sample task generate karyega 5 at a time
+		}
+		if (evt.ctrlKey || evt.metaKey || evt.altKey) return;
+		// default shortcuts se bachne ke liye
 		if (evt.key.toLowerCase() === "n") {
 			if (taskModal.dataset.modalOpen === "true") return;
 			toggleTaskModal(true);
@@ -406,18 +470,28 @@ document.addEventListener("DOMContentLoaded", () => {
 		if (!document.startViewTransition) {
 			// Ye fallback hn agar browser ke andar view trans. available na ho
 			document.documentElement.setAttribute("data-theme", theme);
-			localStorage.setItem("theme", theme);
+			try {
+				localStorage.setItem("theme", theme);
+			} catch (error) {
+				toast.show("error", "Error Saving the theme.");
+			}
 			return;
 		}
 		document.startViewTransition(() => {
 			document.documentElement.setAttribute("data-theme", theme);
-			localStorage.setItem("theme", theme);
+			try {
+				localStorage.setItem("theme", theme);
+			} catch (error) {
+				toast.show("error", "Error Saving the theme.");
+			}
 		});
 	};
 
 	const getTheme = () => {
 		const savedTheme = localStorage.getItem("theme");
 		if (savedTheme) return savedTheme;
+		// pele se theme saved ho to vo return hogi nhi to jo
+		// user ke os/browser me set hogi vo
 		return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 	};
 
@@ -426,10 +500,9 @@ document.addEventListener("DOMContentLoaded", () => {
 		loadTasks();
 		applyTheme(document.documentElement.getAttribute("data-theme") || getTheme());
 		if (taskList === undefined || taskList.length === 0) {
-			toggleEmptyState(true);
+			toggleEmptyState(true); // agar task list khali ho to empty state show karva do
 		} else {
 			taskList.forEach((todo) => renderTask(todo));
 		}
-		toast.show("success", "Hello!", "Mission complete.");
 	})();
 });

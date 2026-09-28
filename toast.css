@@ -67,7 +67,7 @@
 .toast.toast-success {
 	--toast-accent-color: var(--success);
 	background: var(--success) !important;
-	color: var(--white) !important;
+	color: var(--black) !important;
 }
 .toast.toast-error {
 	--toast-accent-color: var(--danger);
@@ -77,12 +77,12 @@
 .toast.toast-warning {
 	--toast-accent-color: var(--warning);
 	background: var(--warning) !important;
-	color: var(--white) !important;
+	color: var(--black) !important;
 }
 .toast.toast-info {
 	--toast-accent-color: var(--info);
 	background: var(--info) !important;
-	color: var(--white) !important;
+	color: var(--black) !important;
 }
 
 .toast-icon {
