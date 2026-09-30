@@ -11,6 +11,7 @@ const STORAGE_KEYS = { TODOS: "todos", THEME: "theme" };
 const TITLE_PREVIEW_LEN = 16;
 const AUTO_SCROLL_TITLE_LEN = 30;
 const CONFETTI_MS = 3000;
+const CURRENT_SCHEMA_VERSION = 2;
 
 //Initializations...?
 
@@ -62,14 +63,14 @@ const toggleTaskModal = (isOpen, id = null) => {
 	// Agar id pass ki hogi to edit mode me jagya nhi to add mode
 	if (id) {
 		const todo = taskList[getTodoIndex(id)];
-		modalFormTitle.textContent = `Edit ${todo.todoTitle.substring(0, 16)}${todo.todoTitle.length > TITLE_PREVIEW_LEN ? "..." : ""}`;
+		modalFormTitle.textContent = `Edit ${todo.title.substring(0, 16)}${todo.title.length > TITLE_PREVIEW_LEN ? "..." : ""}`;
 		submitFormBtn.textContent = "Update Task";
 
-		inputs.title.value = todo.todoTitle;
-		inputs.desc.value = todo.todoDesc;
-		inputs.dueDate.value = todo.todoDueDate;
+		inputs.title.value = todo.title;
+		inputs.desc.value = todo.desc;
+		inputs.dueDate.value = todo.dueDate;
 		inputs.state.value = todo.state;
-		inputs.radios.forEach((r) => (r.checked = r.value === todo.todoPriority));
+		inputs.radios.forEach((r) => (r.checked = r.value === todo.priority));
 	} else {
 		modalFormTitle.textContent = "Add New Task";
 		submitFormBtn.textContent = "Add Task";
@@ -92,36 +93,80 @@ const saveTasks = () => {
 	}
 };
 
+const migrateTask = (task) => {
+	// Old shape had "todo"-prefixed keys; if title isn't there but title is, it's old
+	if (task.title !== undefined || task.todoTitle === undefined) {
+		return { task, changed: false }; // already new shape (or unrecognized), leave as-is
+	}
+
+	const migrated = {
+		id: task.todoId,
+		title: task.todoTitle,
+		desc: task.todoDesc,
+		dueDate: task.todoDueDate,
+		priority: task.todoPriority,
+		state: task.state,
+	};
+
+	return { task: migrated, changed: true };
+};
+
 const loadTasks = () => {
-	if (localStorage.getItem(STORAGE_KEYS.TODOS) === null) return;
+	const raw = localStorage.getItem(STORAGE_KEYS.TODOS);
+	if (raw === null) return;
+
+	let parsed;
 	try {
-		const parsed = JSON.parse(localStorage.getItem(STORAGE_KEYS.TODOS));
-		taskList = Array.isArray(parsed) ? parsed : [];
+		parsed = JSON.parse(raw);
 	} catch {
 		taskList = [];
+		return;
 	}
-	return;
+
+	if (!Array.isArray(parsed)) {
+		taskList = [];
+		return;
+	}
+
+	let anyChanged = false;
+	const migratedList = [];
+
+	for (const task of parsed) {
+		try {
+			const { task: result, changed } = migrateTask(task);
+			if (changed) anyChanged = true;
+			migratedList.push(result);
+		} catch {
+			// skip this one bad task rather than losing the whole list
+			continue;
+		}
+	}
+
+	taskList = migratedList;
+
+	if (anyChanged) {
+		saveTasks(); // persist new shape so next load skips migration
+	}
 };
 
 const renderTask = (taskItem) => {
-	const isOverdue =
-		new Date().toISOString().split("T")[0] > taskItem.todoDueDate && taskItem.state !== STATES.COMPLETED;
+	const isOverdue = new Date().toISOString().split("T")[0] > taskItem.dueDate && taskItem.state !== STATES.COMPLETED;
 	const formattedDueDate = document.createTextNode(
-		new Intl.DateTimeFormat("en-GB").format(new Date(taskItem.todoDueDate)),
+		new Intl.DateTimeFormat("en-GB").format(new Date(taskItem.dueDate)),
 	); //^ ye kuch is tarah se format hoga: DD/MM/YYYY
 
 	const taskElem = document.createElement("div");
-	taskElem.className = `todo-card flex priority-${taskItem.todoPriority}`;
+	taskElem.className = `todo-card flex priority-${taskItem.priority}`;
 	taskElem.dataset.state = taskItem.state;
-	taskElem.id = taskItem.todoId;
+	taskElem.id = taskItem.id;
 	taskElem.draggable = false;
 	taskElem.innerHTML = taskCardTemplate;
 
 	let titleSpan = taskElem.querySelector(".todo-title");
-	titleSpan.textContent = taskItem.todoTitle;
-	titleSpan.classList.toggle("auto-scroll", taskItem.todoTitle.length >= AUTO_SCROLL_TITLE_LEN);
+	titleSpan.textContent = taskItem.title;
+	titleSpan.classList.toggle("auto-scroll", taskItem.title.length >= AUTO_SCROLL_TITLE_LEN);
 
-	taskElem.querySelector(".todo-description").textContent = taskItem.todoDesc;
+	taskElem.querySelector(".todo-description").textContent = taskItem.desc;
 
 	let dueDateDiv = taskElem.querySelector(".todo-due-date");
 	dueDateDiv.classList.toggle("date-overdue", isOverdue);
@@ -172,10 +217,10 @@ const handleFormSubmit = () => {
 		const idx = getTodoIndex(currentEditId);
 		taskList[idx] = {
 			...taskList[idx],
-			todoTitle: title,
-			todoDesc: inputs.desc.value,
-			todoDueDate: dueDate,
-			todoPriority: priority,
+			title: title,
+			desc: inputs.desc.value,
+			dueDate: dueDate,
+			priority: priority,
 			state: inputs.state.value,
 		};
 
@@ -183,11 +228,11 @@ const handleFormSubmit = () => {
 		renderTask(taskList[idx]);
 	} else {
 		const newTask = {
-			todoId: crypto.randomUUID(),
-			todoTitle: title,
-			todoDesc: inputs.desc.value,
-			todoDueDate: dueDate,
-			todoPriority: priority,
+			id: crypto.randomUUID(),
+			title: title,
+			desc: inputs.desc.value,
+			dueDate: dueDate,
+			priority: priority,
 			state: "todo",
 		};
 		taskList.unshift(newTask);
@@ -199,7 +244,7 @@ const handleFormSubmit = () => {
 };
 
 const handleTaskDelete = (id) => {
-	taskList = taskList.filter((t) => t.todoId !== id);
+	taskList = taskList.filter((t) => t.id !== id);
 	console.log("Removing task with this id: ", id);
 	toast.show("normal", "Task Deleted");
 	// ^ future me undo task delete add ho skta hn
@@ -238,8 +283,8 @@ const rand = (len) => {
 	return Math.floor(Math.random() * len);
 };
 
-const getTodoIndex = (todoId) => {
-	return taskList.findIndex((todo) => todo.todoId === todoId);
+const getTodoIndex = (id) => {
+	return taskList.findIndex((todo) => todo.id === id);
 	// ye jyda optimised nhi hn future me kuch aur use karna hoga
 	// koi sorting algorithm ya kuch aur..!?
 };
@@ -259,11 +304,11 @@ const createSampleTasks = (max = 5) => {
 	let states = Object.values(STATES);
 	for (let i = 0; i < max; i++) {
 		const newTask = {
-			todoId: crypto.randomUUID(),
-			todoTitle: `test ${i + 1}`,
-			todoDesc: `This is test task number: ${i + 1}`,
-			todoDueDate: new Date().toISOString().split("T")[0],
-			todoPriority: PRIORITIES[rand(PRIORITIES.length)],
+			id: crypto.randomUUID(),
+			title: `test ${i + 1}`,
+			desc: `This is test task number: ${i + 1}`,
+			dueDate: new Date().toISOString().split("T")[0],
+			priority: PRIORITIES[rand(PRIORITIES.length)],
 			state: states[rand(states.length)],
 		};
 		taskList.unshift(newTask);

@@ -68,7 +68,3 @@ class Toast {
 		return icons[type];
 	}
 }
-
-// USAGE
-// const toast = new Toast();
-// toast.show('success', 'Hello!', 'Mission complete.');
